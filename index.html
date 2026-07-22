@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월세방 스마트 체크리스트 & 대시보드</title>
+    
+    <!-- 🖼️ 라이트박스(Fancybox v5) 라이브러리 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #fdfcf4; 
+            --container-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --accent: #b39ddb; 
+            --accent-hover: #9575cd; 
+            --border: #e6e6e6;
+            --danger-bg: #ffebee;
+            --danger-text: #c62828;
+            --danger-border: #ffcdd2;
+            --success-bg: #e8f5e9; 
+            --success-text: #2e7d32;
+            --warning-bg: #fff9c4; 
+            --warning-text: #f57f17;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 { font-size: 26px; margin: 0; color: #4a3b69; }
+        .header-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 5px; }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover:not(:disabled) { background-color: var(--accent-hover); transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline { background-color: transparent; color: var(--accent-hover); border: 1px solid var(--accent); }
+        .btn-outline:hover:not(:disabled) { background-color: #f3e5f5; }
+        .btn-danger { background-color: transparent; color: var(--danger-text); border: 1px solid var(--danger-border); }
+        .btn-danger:hover { background-color: var(--danger-bg); }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 2px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover { background: #fdfdfd; color: var(--text-main); }
+        .tab-btn.active { background: var(--container-bg); color: var(--accent-hover); border-bottom: 3px solid var(--accent); }
+
+        .tab-content {
+            display: none;
+            background: var(--container-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+        .tab-content.active { display: block; }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* 🔍 필터 바 스타일 */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            flex: 1;
+            min-width: 140px;
+        }
+        .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+
+        /* 🏠 카드 그리드 레이아웃 */
+        .room-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .room-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .room-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+            border-color: var(--accent);
+        }
+
+        .room-card-thumb {
+            width: 100%;
+            height: 160px;
+            background-color: #f3f3f3;
+            object-fit: cover;
+        }
+
+        .room-card-body {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+        }
+
+        .room-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .room-card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4a3b69;
+            margin: 0;
+            word-break: break-all;
+        }
+
+        .room-card-agency {
+            font-size: 12px;
+            color: var(--accent-hover);
+            font-weight: 600;
+            background: #f3e5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: fit-content;
+        }
+
+        .room-card-price {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        .room-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            margin-top: auto;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge.pass { background: var(--success-bg); color: var(--success-text); border: 1px solid #c8e6c9; }
+        .badge.fail { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
+        .badge.hold { background: var(--warning-bg); color: var(--warning-text); border: 1px solid #fff59d; }
+        .badge.score { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; font-size: 12px; }
+
+        .callout { padding: 18px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .callout.danger { background-color: var(--danger-bg); border-left: 5px solid var(--danger-text); }
+        .callout.danger h3 { color: var(--danger-text); margin-top: 0; font-size: 16px; }
+        .callout.info { background-color: #f3e5f5; border-left: 5px solid var(--accent); }
+        .callout.info h3 { color: var(--accent-hover); margin-top: 0; font-size: 16px; }
+        .callout.success { background-color: var(--success-bg); border-left: 5px solid var(--success-text); }
+        .callout.success h3 { color: var(--success-text); margin-top: 0; font-size: 16px; }
+
+        details { margin-bottom: 12px; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; }
+        summary { padding: 14px 18px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        summary::after { content: '+'; font-size: 18px; color: var(--text-muted); }
+        details[open] summary::after { content: '−'; }
+        details .content { padding: 15px 18px; border-top: 1px solid var(--border); background: #ffffff; border-radius: 0 0 8px 8px; }
+
+        ul { padding-left: 20px; margin: 5px 0; }
+        li { margin-bottom: 6px; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 780px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding: 25px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+        .form-group input[type="text"], 
+        .form-group input[type="number"], 
+        .form-group input[type="date"], 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+        }
+        .form-group textarea { resize: vertical; height: 70px; }
+
+        .checkbox-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
+            background: #fafafa; padding: 12px; border-radius: 6px; border: 1px solid var(--border);
+        }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; user-select: none; }
+        .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+        .score-box {
+            background: var(--success-bg); border: 2px dashed #81c784; padding: 12px 18px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        }
+        .score-box .score-val { font-size: 24px; font-weight: bold; color: var(--success-text); }
+
+        .photo-picker-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+            max-height: 340px; overflow-y: auto; border: 1px solid var(--border); padding: 12px; border-radius: 8px; background: #fafafa;
+        }
+        .photo-picker-item {
+            position: relative; width: 100%; height: 160px; border-radius: 8px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.2s;
+        }
+        .photo-picker-item img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-picker-item.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(179, 157, 219, 0.4); }
+        .photo-picker-item .check-badge {
+            display: none; position: absolute; top: 6px; right: 6px; background: var(--accent-hover); color: white;
+            border-radius: 50%; width: 24px; height: 24px; font-size: 14px; text-align: center; line-height: 24px; font-weight: bold;
+        }
+        .photo-picker-item.selected .check-badge { display: block; }
+        .photo-picker-item.disabled { cursor: not-allowed; opacity: 0.45; filter: grayscale(80%); }
+        .photo-picker-item.disabled .used-overlay {
+            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.65); color: #ffffff; font-size: 13px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px;
+        }
+
+        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .photo-gallery a { display: block; position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .photo-gallery img { width: 100%; height: 120px; object-fit: cover; display: block; }
+
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+        .detail-row span.label { color: var(--text-muted); font-weight: 500; }
+        .detail-row span.value { font-weight: 600; text-align: right; }
+        .loading-spinner { text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1; }
+        .triple-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>🏠 월세방 스마트 체크리스트 & 대시보드</h1>
+            <div class="header-subtitle">기준: 보증금 500 이하 | 월세+관리비 40 이하 | 도보 25분 이내</div>
+        </div>
+        <div>
+            <button class="btn" onclick="openFormModal()">➕ 새 방 추가하기</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard')">📋 구경한 방 목록</button>
+        <button class="tab-btn" onclick="switchTab('legal')">🚨 계약 전 필수 안전장치</button>
+        <button class="tab-btn" onclick="switchTab('inspection')">🔍 현장 점검 노하우</button>
+        <button class="tab-btn" onclick="switchTab('terms')">📝 추천 특약사항</button>
+        <button class="tab-btn" onclick="switchTab('convenience')">🌿 생활 편의 & 안전</button>
+    </div>
+
+    <div id="dashboard" class="tab-content active">
+        <div class="action-bar">
+            <span class="status-info" id="lastUpdatedInfo">🔄 구글 시트에서 데이터를 불러오는 중...</span>
+            <button class="btn btn-outline" onclick="fetchRoomData()">🔄 데이터 새로고침</button>
+        </div>
+
+        <!-- 🔍 추가된 검색 및 필터 영역 (부동산 필터 포함) -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="🔍 방 이름 검색..." oninput="renderRoomCards()">
+            <select id="agencyFilter" onchange="renderRoomCards()">
+                <option value="">부동산 전체</option>
+            </select>
+            <select id="statusFilter" onchange="renderRoomCards()">
+                <option value="">상태 전체</option>
+                <option value="추천">추천</option>
+                <option value="보류">보류</option>
+                <option value="탈락">탈락</option>
+            </select>
+        </div>
+
+        <!-- 🏠 카드 그리드 컨테이너 -->
+        <div class="room-card-grid" id="roomCardContainer">
+            <div class="loading-spinner">데이터를 읽어오고 있습니다...</div>
+        </div>
+    </div>
+
+    <!-- 법적 체크 탭 등 기타 내용 -->
+    <div id="legal" class="tab-content">
+        <div class="callout danger">
+            <h3>[필수로 확인하세요] 계약 & 법적 안전장치</h3>
+            <p>보증금을 안전하게 지키고 위법 건축물로 인한 피해를 막기 위해 계약 전~잔금 지급 시 무조건 확인해야 하는 필수 서류 및 체크 항목입니다.</p>
+        </div>
+        <ul>
+            <li><strong>등기부등본 (갑구/을구)</strong>
+                <ul>
+                    <li><strong>갑구:</strong> 실제 소유자와 임대인 신분증 일치 여부 확인 (신탁 등기 여부 필히 확인)</li>
+                    <li><strong>을구:</strong> 근저당권(대출) 금액 확인. (근저당 설정액 + 선순위 보증금 합계 &lt; 매매가의 60~70% 수준이어야 안전)</li>
+                </ul>
+            </li>
+            <li><strong>건축물대장:</strong> 위반건축물 여부 확인. 위반건축물일 경우 전입신고 불가 및 대출 제한 발생.</li>
+            <li><strong>임대인 국세·지방세 납세증명서:</strong> 집주인의 세금 체납 여부 확인.</li>
+            <li><strong>전입신고 & 확정일자 가능 여부:</strong> 대항력 확보를 위해 잔금 당일 전입신고 및 확정일자 부여.</li>
+            <li><strong>임대인 신분증 & 계좌 일치:</strong> 송금 계좌가 등기부등본상 소유자명의 계좌인지 확인.</li>
+        </ul>
+    </div>
+
+    <div id="inspection" class="tab-content">
+        <h2>🔍 현장 점검 노하우</h2>
+        <details open>
+            <summary>1. 방음 확인 방법</summary>
+            <div class="content">
+                <ul>
+                    <li><strong>벽면 두드려보기:</strong> 묵직하면 콘크리트(우수), 비어있는 소리면 석고보드 가벽(소음 큼).</li>
+                    <li><strong>샷시(창문) 확인:</strong> 창문을 닫았을 때 외부 차량/길거리 소음 차단율 체크.</li>
+                    <li><strong>배관 소음:</strong> 화장실 변기 물을 내려보고 물 빠지는 소리가 울리는지 확인.</li>
+                </ul>
+            </div>
+        </details>
+        <details>
+            <summary>2. 냄새 · 벌레 · 누수 · 하자 점검법</summary>
+            <div class="content">
+                <ul>
+                    <li><strong>벌레 흔적:</strong> 싱크대 하부장 내부, 걸레받이 틈새 까만 점(분변) 및 약 설치 흔적 확인.</li>
+                    <li><strong>누수 및 곰팡이:</strong> 창문 틀 주변, 천장 모서리, 옷장 안쪽 도배지 얼룩 확인.</li>
+                    <li><strong>수압 및 배수:</strong> 세면대 물을 튼 상태에서 변기 물을 함께 내려 수압 변화 확인.</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+
+    <div id="terms" class="tab-content">
+        <div class="callout info">
+            <h3>📝 추천 계약 특약사항</h3>
+            <p>계약서에 아래 내용을 특약으로 넣어두면 분쟁을 예방할 수 있습니다.</p>
+        </div>
+        <ol style="line-height: 1.8;">
+            <li><strong>권리 관계 유지:</strong> "임대인은 잔금 지급일 다음 날까지 현재의 등기부등본상 권리 관계를 유지해야 하며, 위반 시 계약 무효 및 계약금 전액 즉시 반환."</li>
+            <li><strong>하자 보수 의무:</strong> "입주 전 발생한 하자(도배 상태, 곰팡이, 누수 등)는 임대인이 입주 전까지 완료하기로 한다."</li>
+            <li><strong>옵션 수리 기준:</strong> "기본 옵션 가전 및 난방 시설의 노후 고장은 임대인 비용으로 수리/교체한다."</li>
+            <li><strong>대출/보증보험 실패 시:</strong> "임대인 또는 건물 하자로 인해 전세자금대출/보증보험 가입 불가 시 계약금 전액 반환."</li>
+        </ol>
+    </div>
+
+    <div id="convenience" class="tab-content">
+        <div class="callout success">
+            <h3>🌿 생활 편의 & 안전 현장 체크리스트</h3>
+            <p>삶의 질을 좌우하는 입지 및 편의 요소들입니다.</p>
+        </div>
+        <ul>
+            <li><strong>🚮 쓰레기 · 분리수거장:</strong> 건물 내 분리수거장 관리 상태, 배출 장소 확인.</li>
+            <li><strong>🏔️ 출퇴근길 경사도:</strong> 도보 시간 외 실제 경사(언덕길) 체크.</li>
+            <li><strong>☀️ 채광 시간:</strong> 앞 건물 높이나 거리에 따른 실제 채광 시간 체크.</li>
+            <li><strong>🌐 인터넷 환경:</strong> 기본 인터넷 선 유무 및 타공 가능 여부.</li>
+            <li><strong>📦 택배 보관:</strong> 비를 맞지 않고 안전하게 보관할 공간 유무.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal-overlay" id="formModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 id="modalFormTitle" style="margin: 0; font-size: 20px; color: #4a3b69;">➕ 새 방 추가하기</h2>
+            <button class="modal-close" onclick="closeFormModal()">&times;</button>
+        </div>
+        <form id="roomForm" onsubmit="submitRoomForm(event)">
+            <input type="hidden" id="editRowIndex" value="">
+
+            <div class="score-box">
+                <div>
+                    <strong>📊 점수 계산기 (자동 산출)</strong>
+                    <div style="font-size: 12px; color: #4a5568;">입력 및 선택 항목에 따라 실시간 반영됩니다.</div>
+                </div>
+                <div class="score-val" id="calculatedScoreVal">50점</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>📅 방문일자 *</label>
+                    <input type="date" id="addVisitDate" required>
+                </div>
+                <div class="form-group">
+                    <label>방 이름 / 위치 *</label>
+                    <input type="text" id="addName" placeholder="예: 상남동 햇살원룸 302호" required>
+                </div>
+
+                <!-- 🏢 부동산 이름 입력 필드 추가 -->
+                <div class="form-group">
+                    <label>🏢 중개 부동산 이름</label>
+                    <input type="text" id="addAgencyName" placeholder="예: 친절한 공인중개사">
+                </div>
+                <div class="form-group">
+                    <label>평가 (상태)</label>
+                    <select id="addStatus">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="추천">추천</option>
+                        <option value="보류">보류</option>
+                        <option value="탈락">탈락</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>보증금 (만원) *</label>
+                    <input type="number" id="addDeposit" placeholder="500" required>
+                </div>
+                <div class="form-group">
+                    <label>월세 + 관리비 (만원) *</label>
+                    <input type="number" id="addRent" placeholder="38" required>
+                </div>
+                <div class="form-group">
+                    <label>회사까지 도보 거리 (분)</label>
+                    <input type="number" id="addWalkTime" placeholder="20">
+                </div>
+                <div class="form-group">
+                    <label>구조</label>
+                    <select id="addStructure">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="분리형 원룸">분리형 원룸</option>
+                        <option value="투룸">투룸</option>
+                        <option value="오픈형 원룸">오픈형 원룸</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🚗 주차 가능 여부</label>
+                    <select id="addParkingType" onchange="toggleParkingCostInput(); calculateScore();">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="무료 가능">무료 가능</option>
+                        <option value="유료 가능">유료 가능</option>
+                        <option value="불가능">불가능</option>
+                    </select>
+                </div>
+                <div class="form-group" id="parkingCostGroup" style="display: none;">
+                    <label>주차 비용 (월 만원)</label>
+                    <input type="number" id="addParkingCost" placeholder="예: 3 (3만원)">
+                </div>
+
+                <div class="form-group">
+                    <label>☀️ 방향</label>
+                    <select id="addDirection" onchange="calculateScore()">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="남향">남향</option>
+                        <option value="동향">동향</option>
+                        <option value="서향">서향</option>
+                        <option value="북향">북향</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🌤️ 채광 상태</label>
+                    <select id="addLighting" onchange="calculateScore()">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="좋음">좋음</option>
+                        <option value="약간 가림">약간 가림</option>
+                        <option value="완전 가림">완전 가림</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🚰 수압</label>
+                    <select id="addWaterPressure" onchange="calculateScore()">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="좋음">좋음</option>
+                        <option value="보통">보통</option>
+                        <option value="나쁨">나쁨</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🔌 콘센트 개수</label>
+                    <select id="addOutlets" onchange="calculateScore()">
+                        <option value="" selected>-- 선택 안함 --</option>
+                        <option value="5개 이상">5개 이상 (넉넉함)</option>
+                        <option value="3~4개">3~4개 (보통)</option>
+                        <option value="1~2개">1~2개 (부족함)</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label>🏢 주요 시설 유무</label>
+                    <div class="triple-grid">
+                        <div>
+                            <label style="font-weight: 500; font-size:12px;">🛗 엘리베이터</label>
+                            <select id="addElevator" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight: 500; font-size:12px;">🚪 중문</label>
+                            <select id="addMiddleDoor" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight: 500; font-size:12px;">🔒 공동현관 비번</label>
+                            <select id="addBuildingLock" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label>⚠️ 하자 및 문제 흔적</label>
+                    <div class="triple-grid" style="background:var(--danger-bg); border-color:var(--danger-border);">
+                        <div>
+                            <label style="font-weight: 500; font-size:12px; color:var(--danger-text);">🍄 곰팡이</label>
+                            <select id="addMould" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight: 500; font-size:12px; color:var(--danger-text);">💧 누수</label>
+                            <select id="addLeak" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight: 500; font-size:12px; color:var(--danger-text);">🪳 벌레</label>
+                            <select id="addBugs" onchange="calculateScore()">
+                                <option value="모름" selected>모름</option>
+                                <option value="있음">있음</option>
+                                <option value="없음">없음</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label>🛋️ 포함 옵션 선택</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="세탁기" onchange="calculateScore()"> 세탁기</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="가스레인지" onchange="calculateScore()"> 가스레인지</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="인덕션" onchange="calculateScore()"> 인덕션</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="에어컨" onchange="calculateScore()"> 에어컨</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="냉장고" onchange="calculateScore()"> 냉장고</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="침대" onchange="calculateScore()"> 침대</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="옷장" onchange="calculateScore()"> 옷장</label>
+                        <label class="checkbox-item"><input type="checkbox" name="optionCheck" value="전자레인지" onchange="calculateScore()"> 전자레인지</label>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin:0;">📷 구글 드라이브 사진 선택</label>
+                        <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 12px;" onclick="fetchDrivePhotos()">🔄 사진 새로고침</button>
+                    </div>
+                    <div id="drivePhotoPicker" class="photo-picker-grid">
+                        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 15px;">사진을 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label>선택된 사진 URL</label>
+                    <input type="text" id="addPhotoUrl" readonly placeholder="위에서 사진을 선택하면 자동 입력됩니다.">
+                </div>
+                <div class="form-group full">
+                    <label>📝 메모 및 특이사항</label>
+                    <textarea id="addMemo" placeholder="방음 상태, 주변 환경, 기타 참고사항 메모"></textarea>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button type="button" class="btn btn-outline" onclick="closeFormModal()">취소</button>
+                <button type="submit" class="btn" id="submitBtn">구글 시트에 저장하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div style="display: flex; gap: 6px;">
+                <button class="btn btn-outline" style="padding: 5px 12px; font-size: 13px;" id="prevRoomBtn">◀ 이전 방</button>
+                <button class="btn btn-outline" style="padding: 5px 12px; font-size: 13px;" id="nextRoomBtn">다음 방 ▶</button>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="btn btn-danger" style="padding: 5px 12px; font-size: 13px;" id="deleteDetailBtn">🗑️ 삭제</button>
+                <button class="btn btn-outline" style="padding: 5px 12px; font-size: 13px;" id="editDetailBtn">✏️ 수정</button>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+        </div>
+        <div id="detailContent"></div>
+    </div>
+</div>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8rG_aqoUJNPNiDiHkpNTUDeZNG3skFr03YkD6ycPEkWk3gS0TLg2UoMEYVzkM9ZjA/exec";
+
+    let roomDataStore = [];
+    let selectedPhotoUrls = [];
+    let usedPhotoUrls = new Set();
+    let currentEditModalIndex = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // 💡 로컬 시간 기준으로 오늘 날짜(YYYY-MM-DD) 설정
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        document.getElementById('addVisitDate').value = `${year}-${month}-${day}`;
+        
+        fetchRoomData();
+    });
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function toggleParkingCostInput() {
+        const type = document.getElementById('addParkingType').value;
+        const costGroup = document.getElementById('parkingCostGroup');
+        costGroup.style.display = (type === '유료 가능') ? 'block' : 'none';
+    }
+
+    function formatDateOnly(dateVal) {
+        if (!dateVal) return '-';
+        let str = String(dateVal).trim();
+        
+        // ISO 형식이나 타임스탬프에서 날짜 부분(YYYY-MM-DD)만 깔끔하게 추출
+        if (str.includes('T')) {
+            str = str.split('T')[0];
+        } else if (str.includes(' ')) {
+            str = str.split(' ')[0];
+        }
+        
+        // 정규식을 통해 YYYY-MM-DD 형태가 올바르게 잡히는지 확인 후 그대로 반환
+        const match = str.match(/^(\d{4})[-.\/](\d{2})[-.\/](\d{2})$/);
+        if (match) {
+            return `${match[1]}-${match[2]}-${match[3]}`;
+        }
+        
+        // 만약 다른 형식이라면 앞 10자리(YYYY-MM-DD)만 잘라서 반환
+        if (str.length >= 10) {
+            return str.substring(0, 10);
+        }
+        
+        return str;
+    }
+
+    function parseYNValue(val) {
+        if (!val || val === '모름') return '모름';
+        if (val === 'O' || val === '있음' || val === true) return '있음';
+        if (val === 'X' || val === '없음' || val === false) return '없음';
+        return '모름';
+    }
+
+    function calculateScore() {
+        let score = 50;
+        const dir = document.getElementById('addDirection').value;
+        if (dir === '남향') score += 10;
+        else if (dir === '동향') score += 7;
+        else if (dir === '서향') score += 5;
+        else if (dir === '북향') score += 2;
+
+        const light = document.getElementById('addLighting').value;
+        if (light === '좋음') score += 10;
+        else if (light === '약간 가림') score += 5;
+
+        const water = document.getElementById('addWaterPressure').value;
+        if (water === '좋음') score += 10;
+        else if (water === '보통') score += 5;
+
+        const outlets = document.getElementById('addOutlets').value;
+        if (outlets === '5개 이상') score += 5;
+        else if (outlets === '3~4개') score += 3;
+
+        const parking = document.getElementById('addParkingType').value;
+        if (parking === '무료 가능') score += 8;
+        else if (parking === '유료 가능') score += 4;
+
+        if (document.getElementById('addElevator').value === '있음') score += 5;
+        if (document.getElementById('addMiddleDoor').value === '있음') score += 5;
+        if (document.getElementById('addBuildingLock').value === '있음') score += 5;
+
+        if (document.getElementById('addMould').value === '있음') score -= 10;
+        if (document.getElementById('addLeak').value === '있음') score -= 10;
+        if (document.getElementById('addBugs').value === '있음') score -= 10;
+
+        const optCount = document.querySelectorAll('input[name="optionCheck"]:checked').length;
+        score += optCount;
+
+        score = Math.max(0, Math.min(100, score));
+        document.getElementById('calculatedScoreVal').innerText = `${score}점`;
+        return score;
+    }
+
+    function fetchRoomData() {
+        const infoEl = document.getElementById('lastUpdatedInfo');
+        infoEl.innerText = "🔄 구글 시트에서 데이터를 불러오는 중...";
+
+        fetch(WEB_APP_URL)
+            .then(response => response.json())
+            .then(data => {
+                roomDataStore = data;
+                updateAgencyFilterOptions();
+                renderRoomCards();
+                const now = new Date().toLocaleTimeString();
+                infoEl.innerText = `✅ 최근 동기화: ${now} (총 ${data.length}개 방)`;
+            })
+            .catch(error => {
+                console.error("데이터 동기화 에러:", error);
+                infoEl.innerText = "❌ 시트 동기화 실패. 스크립트 상태를 확인하세요.";
+            });
+    }
+
+    // 🏢 부동산 필터 드롭다운 목록 자동 생성
+    function updateAgencyFilterOptions() {
+        const agencySelect = document.getElementById('agencyFilter');
+        const currentVal = agencySelect.value;
+        
+        agencySelect.innerHTML = '<option value="">부동산 전체</option>';
+        
+        const agencies = new Set();
+        roomDataStore.forEach(room => {
+            if (room['부동산 이름']) {
+                agencies.add(room['부동산 이름'].trim());
+            }
+        });
+
+        agencies.forEach(agency => {
+            const opt = document.createElement('option');
+            opt.value = agency;
+            opt.textContent = agency;
+            agencySelect.appendChild(opt);
+        });
+
+        agencySelect.value = currentVal;
+    }
+
+    // 🏠 카드 형태 리스트 렌더링 함수
+    function renderRoomCards() {
+        const container = document.getElementById('roomCardContainer');
+        container.innerHTML = '';
+
+        const searchText = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase().trim() : '';
+        const selectedAgency = document.getElementById('agencyFilter') ? document.getElementById('agencyFilter').value : '';
+        const statusVal = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : '';
+
+        let renderCount = 0;
+
+        roomDataStore.forEach((room, originalIndex) => {
+            const roomName = (room['방 이름'] || '').toLowerCase();
+            const roomAgency = (room['부동산 이름'] || '').trim();
+            const roomStatus = room['평가'] || '';
+
+            if (searchText && !roomName.includes(searchText)) return;
+            if (selectedAgency && roomAgency !== selectedAgency) return;
+            if (statusVal && roomStatus !== statusVal) return;
+
+            renderCount++;
+
+            let badgeClass = 'hold';
+            if (roomStatus === '추천') badgeClass = 'pass';
+            if (roomStatus === '탈락') badgeClass = 'fail';
+
+            const deposit = room['보증금(만원)'] || 0;
+            const rent = room['월세+관리비(만원)'] || 0;
+            const score = room['최종점수'] ? `${room['최종점수']}점` : '미산정';
+            const visitDate = formatDateOnly(room['방문일자']);
+            
+            // 도보 시간 데이터 가져오기
+            const walkTime = room['도보거리(분)'];
+            const walkTimeText = (walkTime !== undefined && walkTime !== null && String(walkTime).trim() !== '') ? `도보 ${walkTime}분` : '도보 정보 없음';
+            
+            let thumbUrl = 'https://via.placeholder.com/300x160?text=No+Image';
+            if (room['사진URL']) {
+                const urls = room['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
+                if (urls.length > 0) thumbUrl = urls[0];
+            }
+
+            const card = document.createElement('div');
+            card.className = 'room-card';
+            card.onclick = () => openDetailModal(originalIndex);
+
+            card.innerHTML = `
+                <img src="${thumbUrl}" class="room-card-thumb" alt="방 썸네일" onerror="this.src='https://via.placeholder.com/300x160?text=Image+Error'">
+                <div class="room-card-body">
+                    ${roomAgency ? `<div class="room-card-agency">🏢 ${roomAgency}</div>` : ''}
+                    <div class="room-card-header">
+                        <h3 class="room-card-title">${room['방 이름'] || '이름 없음'}</h3>
+                        <span class="badge ${badgeClass}">${roomStatus || '미선택'}</span>
+                    </div>
+                    <div class="room-card-price">보증금 ${deposit}만 / 월세 ${rent}만</div>
+                    <div style="font-size: 13px; color: var(--accent-hover); font-weight: 600; margin-top: 2px;">🚶 ${walkTimeText}</div>
+                    <div class="room-card-footer">
+                        <span>📅 ${visitDate}</span>
+                        <span class="badge score">${score}</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        if (renderCount === 0) {
+            container.innerHTML = '<div class="loading-spinner">조건에 맞는 방이 없거나 등록되지 않았습니다.</div>';
+        }
+    }
+
+    function updateUsedPhotoUrls(excludeIndex = null) {
+        usedPhotoUrls.clear();
+        roomDataStore.forEach((room, idx) => {
+            if (excludeIndex !== null && idx === excludeIndex) return;
+            if (room['사진URL']) {
+                const urls = room['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
+                urls.forEach(u => usedPhotoUrls.add(u));
+            }
+        });
+    }
+
+    function fetchDrivePhotos() {
+        const pickerEl = document.getElementById('drivePhotoPicker');
+        pickerEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 15px;">🔄 드라이브 사진 로드 중...</div>';
+
+        fetch(WEB_APP_URL + '?action=getPhotos')
+            .then(res => res.json())
+            .then(photos => {
+                if (photos.error) {
+                    pickerEl.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--danger-text); padding: 10px;">❌ 오류: ${photos.error}</div>`;
+                    return;
+                }
+                renderPhotoPicker(photos);
+            })
+            .catch(err => {
+                pickerEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger-text); padding: 10px;">❌ 사진 불러오기 실패</div>';
+            });
+    }
+
+    function renderPhotoPicker(photos) {
+        const pickerEl = document.getElementById('drivePhotoPicker');
+        pickerEl.innerHTML = '';
+
+        if (!photos || photos.length === 0) {
+            pickerEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 15px;">드라이브 폴더에 사진이 없습니다.</div>';
+            return;
+        }
+
+        photos.forEach(photo => {
+            const isUsedByOther = usedPhotoUrls.has(photo.url);
+            const isSelected = selectedPhotoUrls.includes(photo.url);
+
+            const item = document.createElement('div');
+            if (isUsedByOther) {
+                item.className = 'photo-picker-item disabled';
+                item.innerHTML = `
+                    <img src="${photo.url}" alt="${photo.name}" title="${photo.name}">
+                    <div class="used-overlay">다른 방에서<br>사용 중</div>
+                `;
+            } else {
+                item.className = `photo-picker-item ${isSelected ? 'selected' : ''}`;
+                item.onclick = () => toggleSelectPhoto(photo.url, item);
+                item.innerHTML = `
+                    <img src="${photo.url}" alt="${photo.name}" title="${photo.name}" onerror="this.src='https://via.placeholder.com/180?text=Error'">
+                    <div class="check-badge">✓</div>
+                `;
+            }
+            pickerEl.appendChild(item);
+        });
+    }
+
+    function toggleSelectPhoto(url, element) {
+        const index = selectedPhotoUrls.indexOf(url);
+        if (index > -1) {
+            selectedPhotoUrls.splice(index, 1);
+            element.classList.remove('selected');
+        } else {
+            selectedPhotoUrls.push(url);
+            element.classList.add('selected');
+        }
+        document.getElementById('addPhotoUrl').value = selectedPhotoUrls.join(', ');
+    }
+
+    function openFormModal(editIndex = null) {
+        currentEditModalIndex = editIndex;
+        const form = document.getElementById('roomForm');
+        form.reset();
+        selectedPhotoUrls = [];
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+        if (editIndex !== null && roomDataStore[editIndex]) {
+            const room = roomDataStore[editIndex];
+            document.getElementById('modalFormTitle').innerText = "✏️ 방 정보 수정하기";
+            document.getElementById('editRowIndex').value = room.rowIndex || (editIndex + 2);
+
+            const todayStr = (() => {
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            })();
+            document.getElementById('addVisitDate').value = formatDateOnly(room['방문일자']) !== '-' ? formatDateOnly(room['방문일자']) : todayStr;
+            document.getElementById('addName').value = room['방 이름'] || '';
+            document.getElementById('addAgencyName').value = room['부동산 이름'] || '';
+            document.getElementById('addStatus').value = room['평가'] || '';
+            document.getElementById('addDeposit').value = room['보증금(만원)'] || '';
+            document.getElementById('addRent').value = room['월세+관리비(만원)'] || '';
+            document.getElementById('addWalkTime').value = room['도보거리(분)'] || '';
+            document.getElementById('addStructure').value = room['구조'] || '';
+            
+            const parkingVal = room['주차'] || '';
+            if (parkingVal.includes('유료')) {
+                document.getElementById('addParkingType').value = '유료 가능';
+                const costMatch = parkingVal.match(/\d+/);
+                if (costMatch) document.getElementById('addParkingCost').value = costMatch[0];
+            } else if (parkingVal.includes('불가능')) {
+                document.getElementById('addParkingType').value = '불가능';
+            } else if (parkingVal.includes('무료')) {
+                document.getElementById('addParkingType').value = '무료 가능';
+            } else {
+                document.getElementById('addParkingType').value = '';
+            }
+            toggleParkingCostInput();
+
+            document.getElementById('addDirection').value = room['방향'] || '';
+            document.getElementById('addLighting').value = room['채광'] || '';
+            document.getElementById('addWaterPressure').value = room['수압'] || '';
+            document.getElementById('addOutlets').value = room['콘센트'] || '';
+
+            document.getElementById('addElevator').value = parseYNValue(room['엘리베이터']);
+            document.getElementById('addMiddleDoor').value = parseYNValue(room['중문']);
+            document.getElementById('addBuildingLock').value = parseYNValue(room['공동현관비번']);
+
+            document.getElementById('addMould').value = parseYNValue(room['곰팡이']);
+            document.getElementById('addLeak').value = parseYNValue(room['누수']);
+            document.getElementById('addBugs').value = parseYNValue(room['벌레']);
+
+            if (room['옵션']) {
+                const opts = room['옵션'].split(',').map(s => s.trim());
+                document.querySelectorAll('input[name="optionCheck"]').forEach(cb => {
+                    if (opts.includes(cb.value)) cb.checked = true;
+                });
+            }
+
+            if (room['사진URL']) {
+                selectedPhotoUrls = room['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
+                document.getElementById('addPhotoUrl').value = selectedPhotoUrls.join(', ');
+            }
+            document.getElementById('addMemo').value = room['메모/특이사항'] || '';
+
+        } else {
+            document.getElementById('modalFormTitle').innerText = "➕ 새 방 추가하기";
+            document.getElementById('editRowIndex').value = "";
+            const todayStr = (() => {
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            })();
+            document.getElementById('addVisitDate').value = todayStr;
+            
+            document.getElementById('addStatus').value = "";
+            document.getElementById('addStructure').value = "";
+            document.getElementById('addParkingType').value = "";
+            document.getElementById('addDirection').value = "";
+            document.getElementById('addLighting').value = "";
+            document.getElementById('addWaterPressure').value = "";
+            document.getElementById('addOutlets').value = "";
+
+            document.getElementById('addElevator').value = "모름";
+            document.getElementById('addMiddleDoor').value = "모름";
+            document.getElementById('addBuildingLock').value = "모름";
+            document.getElementById('addMould').value = "모름";
+            document.getElementById('addLeak').value = "모름";
+            document.getElementById('addBugs').value = "모름";
+
+            toggleParkingCostInput();
+        }
+
+        calculateScore();
+        updateUsedPhotoUrls(editIndex);
+        document.getElementById('formModal').classList.add('active');
+        fetchDrivePhotos();
+    }
+
+    function closeFormModal() {
+        document.getElementById('formModal').classList.remove('active');
+        document.getElementById('roomForm').reset();
+    }
+
+    function submitRoomForm(event) {
+        event.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "저장 중...";
+
+        const rowIndex = document.getElementById('editRowIndex').value;
+        const selectedOptions = [];
+        document.querySelectorAll('input[name="optionCheck"]:checked').forEach(cb => {
+            selectedOptions.push(cb.value);
+        });
+
+        const pType = document.getElementById('addParkingType').value;
+        let parkingStr = pType;
+        if (pType === '유료 가능') {
+            const cost = document.getElementById('addParkingCost').value;
+            parkingStr = `유료 가능 (${cost || 0}만원)`;
+        }
+
+        const calculatedScore = calculateScore();
+
+        const payload = {
+            action: rowIndex ? 'update' : 'create',
+            rowIndex: rowIndex,
+            visitDate: document.getElementById('addVisitDate').value,
+            name: document.getElementById('addName').value,
+            agencyName: document.getElementById('addAgencyName').value,
+            status: document.getElementById('addStatus').value,
+            deposit: document.getElementById('addDeposit').value,
+            rent: document.getElementById('addRent').value,
+            walkTime: document.getElementById('addWalkTime').value,
+            structure: document.getElementById('addStructure').value,
+            parking: parkingStr,
+            direction: document.getElementById('addDirection').value,
+            lighting: document.getElementById('addLighting').value,
+            waterPressure: document.getElementById('addWaterPressure').value,
+            outlets: document.getElementById('addOutlets').value,
+            
+            elevator: document.getElementById('addElevator').value,
+            middleDoor: document.getElementById('addMiddleDoor').value,
+            buildingLock: document.getElementById('addBuildingLock').value,
+            mould: document.getElementById('addMould').value,
+            leak: document.getElementById('addLeak').value,
+            bugs: document.getElementById('addBugs').value,
+            
+            options: selectedOptions.join(', '),
+            score: calculatedScore,
+            photoUrl: document.getElementById('addPhotoUrl').value,
+            memo: document.getElementById('addMemo').value
+        };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(result => {
+            alert(rowIndex ? '✏️ 성공적으로 정보가 수정되었습니다!' : '🎉 새로운 방이 등록되었습니다!');
+            closeFormModal();
+            closeDetailModal();
+            fetchRoomData();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('저장 중 오류가 발생했습니다.');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "구글 시트에 저장하기";
+        });
+    }
+
+    function deleteRoom(rowIndex) {
+        if (!confirm('정말로 이 방 정보를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.')) {
+            return;
+        }
+
+        const deleteBtn = document.getElementById('deleteDetailBtn');
+        deleteBtn.disabled = true;
+        deleteBtn.innerText = "삭제 중...";
+
+        const payload = { action: 'delete', rowIndex: rowIndex };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(result => {
+            alert('🗑️ 성공적으로 삭제되었습니다.');
+            closeDetailModal();
+            fetchRoomData();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('삭제 중 오류가 발생했습니다.');
+        })
+        .finally(() => {
+            deleteBtn.disabled = false;
+            deleteBtn.innerText = "🗑️ 삭제";
+        });
+    }
+
+    function openDetailModal(index) {
+        const room = roomDataStore[index];
+        if (!room) return;
+
+        const targetRowIndex = room.rowIndex || (index + 2);
+        const galleryGroupId = `room-gallery-${index}`;
+
+        const prevBtn = document.getElementById('prevRoomBtn');
+        const nextBtn = document.getElementById('nextRoomBtn');
+        
+        prevBtn.onclick = () => openDetailModal(index - 1);
+        nextBtn.onclick = () => openDetailModal(index + 1);
+        
+        prevBtn.disabled = index <= 0;
+        nextBtn.disabled = index >= roomDataStore.length - 1;
+        
+        document.getElementById('editDetailBtn').onclick = () => {
+            closeDetailModal();
+            openFormModal(index);
+        };
+        document.getElementById('deleteDetailBtn').onclick = () => {
+            deleteRoom(targetRowIndex);
+        };
+
+        let photosHtml = '';
+        if (room['사진URL']) {
+            const urls = room['사진URL'].split(',').map(u => u.trim()).filter(Boolean);
+            photosHtml = '<div class="photo-gallery">';
+            urls.forEach((url, idx) => {
+                photosHtml += `
+                    <a href="${url}" data-fancybox="${galleryGroupId}" data-caption="${room['방 이름'] || '사진'} (${idx + 1}/${urls.length})">
+                        <img src="${url}" alt="방 사진" onerror="this.src='https://via.placeholder.com/180?text=Image+Error'">
+                    </a>
+                `;
+            });
+            photosHtml += '</div>';
+        }
+
+        let badgeClass = 'hold';
+        if (room['평가'] === '추천') badgeClass = 'pass';
+        if (room['평가'] === '탈락') badgeClass = 'fail';
+
+        const formattedVisitDate = formatDateOnly(room['방문일자']);
+        const agencyName = room['부동산 이름'] || '-';
+
+        const content = `
+            ${photosHtml}
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #4a3b69;">${room['방 이름'] || '이름 없음'}</h2>
+            
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom: 20px; flex-wrap: wrap;">
+                <span class="badge ${badgeClass}" style="font-size: 14px; padding: 6px 14px;">${room['평가'] || '미선택'}</span>
+                <span class="badge score" style="font-size: 14px; padding: 6px 14px;">💯 최종 점수: ${room['최종점수'] || '0'}점</span>
+            </div>
+
+            <div class="detail-row"><span class="label">🏢 중개 부동산</span><span class="value">${agencyName}</span></div>
+            <div class="detail-row"><span class="label">📅 방문 일자</span><span class="value">${formattedVisitDate}</span></div>
+            <div class="detail-row"><span class="label">💰 보증금 / 월세(관리비)</span><span class="value">${room['보증금(만원)'] || 0}만 원 / ${room['월세+관리비(만원)'] || 0}만 원</span></div>
+            <div class="detail-row"><span class="label">🚶 회사까지 도보거리</span><span class="value">${room['도보거리(분)'] || '-'}분</span></div>
+            <div class="detail-row"><span class="label">🏢 방 구조</span><span class="value">${room['구조'] || '-'}</span></div>
+            <div class="detail-row"><span class="label">🚗 주차 가능 여부</span><span class="value">${room['주차'] || '-'}</span></div>
+            <div class="detail-row"><span class="label">☀️ 방향 / 채광</span><span class="value">${room['방향'] || '-'} / ${room['채광'] || '-'}</span></div>
+            <div class="detail-row"><span class="label">🚰 수압 / 콘센트</span><span class="value">${room['수압'] || '-'} / ${room['콘센트'] || '-'}</span></div>
+            <div class="detail-row"><span class="label">🛗 엘리베이터 / 중문 / 비번</span><span class="value">엘베(${parseYNValue(room['엘리베이터'])}), 중문(${parseYNValue(room['중문'])}), 비번(${parseYNValue(room['공동현관비번'])})</span></div>
+            <div class="detail-row"><span class="label">⚠️ 하자 흔적 (곰팡이/누수/벌레)</span><span class="value">곰팡이(${parseYNValue(room['곰팡이'])}), 누수(${parseYNValue(room['누수'])}), 벌레(${parseYNValue(room['벌레'])})</span></div>
+            <div class="detail-row"><span class="label">🛋️ 포함 옵션</span><span class="value">${room['옵션'] || '-'}</span></div>
+
+            <div style="margin-top:20px; padding-top: 15px; border-top: 2px solid var(--border);">
+                <h4 style="margin: 0 0 8px 0; font-size:15px; color: var(--accent-hover);">📝 메모 및 특이사항</h4>
+                <div style="font-size:14px; white-space:pre-wrap; text-align: left; line-height: 1.5; color: var(--text-main);">
+                    ${room['메모/특이사항'] || '기록된 메모가 없습니다.'}
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detailContent').innerHTML = content;
+        
+        if (window.Fancybox) {
+            Fancybox.bind(`[data-fancybox="${galleryGroupId}"]`, {
+                Hash: false,
+                Thumbs: false
+            });
+        }
+
+        document.getElementById('detailModal').classList.add('active');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.remove('active');
+    }
+</script>
+</body>
+</html>
