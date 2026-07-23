@@ -4,27 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>월세방 스마트 체크리스트 & 대시보드</title>
-    
+
+    <!-- ✍️ Pretendard 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
     <!-- 🖼️ 라이트박스(Fancybox v5) 라이브러리 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
 
     <style>
         :root {
-            --bg-color: #fdfcf4; 
+            --bg-color: #f7f5fb;        /* 아주 옅은 연보라 배경 */
             --container-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #666666;
-            --accent: #b39ddb; 
-            --accent-hover: #9575cd; 
-            --border: #e6e6e6;
-            --danger-bg: #ffebee;
-            --danger-text: #c62828;
-            --danger-border: #ffcdd2;
-            --success-bg: #e8f5e9; 
-            --success-text: #2e7d32;
-            --warning-bg: #fff9c4; 
-            --warning-text: #f57f17;
+            --text-main: #40394f;
+            --text-muted: #857f95;
+            --heading: #6a5a92;         /* 제목용 진한 연보라 */
+
+            --accent: #b39ddb;          /* 연보라 */
+            --accent-hover: #9575cd;    /* 연보라 진하게 */
+            --accent-soft: #f1ebfa;     /* 연보라 배경 */
+
+            --border: #ece7f3;
+
+            --danger-bg: #fdeef1;
+            --danger-text: #c96a82;     /* 부드러운 로즈 */
+            --danger-border: #f5d5dd;
+
+            --success-bg: #e9f6e6;      /* 연두 배경 */
+            --success-text: #5c9a4f;    /* 연두 텍스트 */
+            --success-border: #c3e6bd;  /* 연두 테두리 */
+
+            --warning-bg: #fdf8cf;      /* 연노랑 배경 */
+            --warning-text: #b58f2b;    /* 연노랑 텍스트 */
+            --warning-border: #f4e79b;  /* 연노랑 테두리 */
         }
 
         * { box-sizing: border-box; }
@@ -49,7 +61,7 @@
             gap: 15px;
         }
 
-        h1 { font-size: 26px; margin: 0; color: #4a3b69; }
+        h1 { font-size: 26px; margin: 0; color: var(--heading); }
         .header-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 5px; }
 
         .btn {
@@ -70,7 +82,7 @@
         .btn:hover:not(:disabled) { background-color: var(--accent-hover); transform: translateY(-1px); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-outline { background-color: transparent; color: var(--accent-hover); border: 1px solid var(--accent); }
-        .btn-outline:hover:not(:disabled) { background-color: #f3e5f5; }
+        .btn-outline:hover:not(:disabled) { background-color: var(--accent-soft); }
         .btn-danger { background-color: transparent; color: var(--danger-text); border: 1px solid var(--danger-border); }
         .btn-danger:hover { background-color: var(--danger-bg); }
 
@@ -121,14 +133,21 @@
         /* 🔍 필터 바 스타일 */
         .filter-bar {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             width: 100%;
             margin-bottom: 20px;
-            background: #fafafa;
-            padding: 12px;
+            background: #faf8fd;
+            padding: 14px;
             border-radius: 8px;
             border: 1px solid var(--border);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .filter-bar input, .filter-bar select {
@@ -137,9 +156,37 @@
             border-radius: 6px;
             font-size: 14px;
             outline: none;
+            background: #fff;
+        }
+        .filter-row > input, .filter-row > select {
             flex: 1;
             min-width: 140px;
         }
+
+        /* 라벨 붙은 숫자/날짜 필터 필드 */
+        .filter-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 3px 10px;
+            flex: 1;
+            min-width: 130px;
+            white-space: nowrap;
+        }
+        .filter-field input {
+            border: none !important;
+            padding: 5px 2px !important;
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+        }
+        .filter-field:focus-within { border-color: var(--accent); }
         .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
 
         /* 🏠 카드 그리드 레이아웃 */
@@ -192,7 +239,7 @@
         .room-card-title {
             font-size: 16px;
             font-weight: bold;
-            color: #4a3b69;
+            color: var(--heading);
             margin: 0;
             word-break: break-all;
         }
@@ -201,7 +248,7 @@
             font-size: 12px;
             color: var(--accent-hover);
             font-weight: 600;
-            background: #f3e5f5;
+            background: var(--accent-soft);
             padding: 2px 6px;
             border-radius: 4px;
             width: fit-content;
@@ -232,15 +279,15 @@
             font-weight: 600;
             display: inline-block;
         }
-        .badge.pass { background: var(--success-bg); color: var(--success-text); border: 1px solid #c8e6c9; }
+        .badge.pass { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
         .badge.fail { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
-        .badge.hold { background: var(--warning-bg); color: var(--warning-text); border: 1px solid #fff59d; }
-        .badge.score { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; font-size: 12px; }
+        .badge.hold { background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); }
+        .badge.score { background: var(--accent-soft); color: var(--accent-hover); border: 1px solid var(--accent); font-size: 12px; }
 
         .callout { padding: 18px 20px; border-radius: 8px; margin-bottom: 20px; }
         .callout.danger { background-color: var(--danger-bg); border-left: 5px solid var(--danger-text); }
         .callout.danger h3 { color: var(--danger-text); margin-top: 0; font-size: 16px; }
-        .callout.info { background-color: #f3e5f5; border-left: 5px solid var(--accent); }
+        .callout.info { background-color: var(--accent-soft); border-left: 5px solid var(--accent); }
         .callout.info h3 { color: var(--accent-hover); margin-top: 0; font-size: 16px; }
         .callout.success { background-color: var(--success-bg); border-left: 5px solid var(--success-text); }
         .callout.success h3 { color: var(--success-text); margin-top: 0; font-size: 16px; }
@@ -253,6 +300,33 @@
 
         ul { padding-left: 20px; margin: 5px 0; }
         li { margin-bottom: 6px; }
+
+        /* 🔒 비밀번호 입력 필드 + 눈 토글 */
+        .password-field { position: relative; display: flex; align-items: center; }
+        .password-field input {
+            width: 100%;
+            padding: 11px 46px 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            letter-spacing: 1px;
+        }
+        .password-field input:focus { border-color: var(--accent); }
+        .pw-toggle {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 6px;
+            line-height: 1;
+            opacity: 0.55;
+        }
+        .pw-toggle:hover { opacity: 1; }
 
         .modal-overlay {
             display: none;
@@ -276,23 +350,30 @@
             overflow-y: auto;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             position: relative;
-            padding: 25px;
+            /* ⭐ 상단 padding 제거 → sticky 헤더가 상단 여백 역할을 겸함 */
+            padding: 0 25px 25px;
         }
 
+        /* ⭐ 스크롤해도 닫기(×) 버튼이 항상 보이도록 헤더를 상단 고정 */
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
+            padding-top: 20px;
             padding-bottom: 15px;
             margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
         }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { margin-bottom: 10px; }
         .form-group.full { grid-column: span 2; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
         .form-group input[type="text"], 
         .form-group input[type="number"], 
         .form-group input[type="date"], 
@@ -310,7 +391,7 @@
         .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 
         .score-box {
-            background: var(--success-bg); border: 2px dashed #81c784; padding: 12px 18px;
+            background: var(--success-bg); border: 2px dashed var(--success-text); padding: 12px 18px;
             border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
         }
         .score-box .score-val { font-size: 24px; font-weight: bold; color: var(--success-text); }
@@ -373,18 +454,31 @@
             <button class="btn btn-outline" onclick="fetchRoomData()">🔄 데이터 새로고침</button>
         </div>
 
-        <!-- 🔍 추가된 검색 및 필터 영역 (부동산 필터 포함) -->
+        <!-- 🔍 검색 및 필터 영역 (카드에 표시되는 모든 컬럼 필터) -->
         <div class="filter-bar">
-            <input type="text" id="searchInput" placeholder="🔍 방 이름 검색..." oninput="renderRoomCards()">
-            <select id="agencyFilter" onchange="renderRoomCards()">
-                <option value="">부동산 전체</option>
-            </select>
-            <select id="statusFilter" onchange="renderRoomCards()">
-                <option value="">상태 전체</option>
-                <option value="추천">추천</option>
-                <option value="보류">보류</option>
-                <option value="탈락">탈락</option>
-            </select>
+            <div class="filter-row">
+                <input type="text" id="searchInput" placeholder="🔍 방 이름 검색..." oninput="renderRoomCards()">
+                <select id="agencyFilter" onchange="renderRoomCards()">
+                    <option value="">🏢 부동산 전체</option>
+                </select>
+                <select id="statusFilter" onchange="renderRoomCards()">
+                    <option value="">평가 전체</option>
+                    <option value="추천">추천</option>
+                    <option value="보류">보류</option>
+                    <option value="탈락">탈락</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <label class="filter-field">💰 보증금 ≤ <input type="number" id="depositMax" placeholder="만원" min="0" oninput="renderRoomCards()"></label>
+                <label class="filter-field">🏷️ 월세 ≤ <input type="number" id="rentMax" placeholder="만원" min="0" oninput="renderRoomCards()"></label>
+                <label class="filter-field">🚶 도보 ≤ <input type="number" id="walkMax" placeholder="분" min="0" oninput="renderRoomCards()"></label>
+                <label class="filter-field">💯 점수 ≥ <input type="number" id="scoreMin" placeholder="점" min="0" max="100" oninput="renderRoomCards()"></label>
+            </div>
+            <div class="filter-row">
+                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
+                <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
+                <button class="btn btn-outline" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
+            </div>
         </div>
 
         <!-- 🏠 카드 그리드 컨테이너 -->
@@ -468,7 +562,7 @@
 <div class="modal-overlay" id="formModal">
     <div class="modal-card">
         <div class="modal-header">
-            <h2 id="modalFormTitle" style="margin: 0; font-size: 20px; color: #4a3b69;">➕ 새 방 추가하기</h2>
+            <h2 id="modalFormTitle" style="margin: 0; font-size: 20px; color: var(--heading);">➕ 새 방 추가하기</h2>
             <button class="modal-close" onclick="closeFormModal()">&times;</button>
         </div>
         <form id="roomForm" onsubmit="submitRoomForm(event)">
@@ -477,7 +571,7 @@
             <div class="score-box">
                 <div>
                     <strong>📊 점수 계산기 (자동 산출)</strong>
-                    <div style="font-size: 12px; color: #4a5568;">입력 및 선택 항목에 따라 실시간 반영됩니다.</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">입력 및 선택 항목에 따라 실시간 반영됩니다.</div>
                 </div>
                 <div class="score-val" id="calculatedScoreVal">50점</div>
             </div>
@@ -700,8 +794,91 @@
     </div>
 </div>
 
+<!-- 🔒 비밀번호 입력 모달 -->
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal-card" style="max-width: 380px;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 18px; color: var(--heading);">🔒 비밀번호 입력</h2>
+            <button class="modal-close" onclick="cancelPassword()">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 12px 0;">추가·수정·삭제하려면 비밀번호를 입력하세요.</p>
+        <div class="password-field">
+            <input type="password" id="passwordInput" placeholder="비밀번호"
+                   onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmPassword(); }">
+            <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePasswordVisibility()" aria-label="비밀번호 표시">👁️</button>
+        </div>
+        <div id="passwordError" style="display:none; color: var(--danger-text); font-size: 13px; margin-top: 8px;">❌ 비밀번호가 올바르지 않습니다.</div>
+        <div style="text-align: right; margin-top: 16px;">
+            <button type="button" class="btn btn-outline" onclick="cancelPassword()">취소</button>
+            <button type="button" class="btn" onclick="confirmPassword()">확인</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8rG_aqoUJNPNiDiHkpNTUDeZNG3skFr03YkD6ycPEkWk3gS0TLg2UoMEYVzkM9ZjA/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyrnhVomMDyyFwlKEWv-cuX3eqbCLHswLpwojJnVHxipwSFy8Y8qq9T-PYpHhVwfdzu/exec";
+
+    // ⭐ 추가/수정 보호용 비밀번호 (하드코딩)
+    const EDIT_PASSWORD = "REDACTED-OLD-PASSWORD";
+    let isAuthenticated = false; // 한 번 인증하면 새로고침 전까지 유지
+    let pwResolve = null;        // 비밀번호 모달 결과를 전달할 resolve 함수
+
+    // 팝업이 하나라도 열려 있으면 배경(body) 스크롤 잠금
+    function updateBodyScrollLock() {
+        const anyOpen = document.querySelector('.modal-overlay.active');
+        document.body.style.overflow = anyOpen ? 'hidden' : '';
+    }
+
+    // 비밀번호 확인: 통과 시 true, 취소/오답 시 false 로 resolve 되는 Promise 반환
+    function requestPassword() {
+        if (isAuthenticated) return Promise.resolve(true);
+        return new Promise(resolve => {
+            pwResolve = resolve;
+            const input = document.getElementById('passwordInput');
+            input.value = '';
+            input.type = 'password';
+            document.getElementById('pwToggle').textContent = '👁️';
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('passwordModal').classList.add('active');
+            updateBodyScrollLock();
+            setTimeout(() => input.focus(), 50);
+        });
+    }
+
+    function confirmPassword() {
+        const input = document.getElementById('passwordInput');
+        if (input.value === EDIT_PASSWORD) {
+            isAuthenticated = true;
+            closePasswordModal(true);
+        } else {
+            document.getElementById('passwordError').style.display = 'block';
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    function cancelPassword() {
+        closePasswordModal(false);
+    }
+
+    function closePasswordModal(result) {
+        document.getElementById('passwordModal').classList.remove('active');
+        updateBodyScrollLock();
+        if (pwResolve) { pwResolve(result); pwResolve = null; }
+    }
+
+    // 👁️ 비밀번호 표시/숨김 토글
+    function togglePasswordVisibility() {
+        const input = document.getElementById('passwordInput');
+        const toggle = document.getElementById('pwToggle');
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            toggle.textContent = '👁️';
+        }
+    }
 
     let roomDataStore = [];
     let selectedPhotoUrls = [];
@@ -736,25 +913,35 @@
     function formatDateOnly(dateVal) {
         if (!dateVal) return '-';
         let str = String(dateVal).trim();
-        
-        // ISO 형식이나 타임스탬프에서 날짜 부분(YYYY-MM-DD)만 깔끔하게 추출
+
+        // ⭐ ISO 타임스탬프(예: 2025-07-21T15:00:00.000Z)인 경우
+        // Apps Script가 시트의 KST 날짜를 UTC로 직렬화하면서 하루가 밀리는 문제 해결.
+        // 문자열을 그냥 자르지 않고 Date로 파싱해 로컬 시간대(KST) 기준 날짜로 복원한다.
         if (str.includes('T')) {
+            const d = new Date(str);
+            if (!isNaN(d.getTime())) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            }
+            // 파싱 실패 시 fallback: T 앞부분만 사용
             str = str.split('T')[0];
         } else if (str.includes(' ')) {
             str = str.split(' ')[0];
         }
-        
+
         // 정규식을 통해 YYYY-MM-DD 형태가 올바르게 잡히는지 확인 후 그대로 반환
-        const match = str.match(/^(\d{4})[-.\/](\d{2})[-.\/](\d{2})$/);
+        const match = str.match(/^(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})$/);
         if (match) {
-            return `${match[1]}-${match[2]}-${match[3]}`;
+            return `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
         }
-        
+
         // 만약 다른 형식이라면 앞 10자리(YYYY-MM-DD)만 잘라서 반환
         if (str.length >= 10) {
             return str.substring(0, 10);
         }
-        
+
         return str;
     }
 
@@ -829,7 +1016,7 @@
         const agencySelect = document.getElementById('agencyFilter');
         const currentVal = agencySelect.value;
         
-        agencySelect.innerHTML = '<option value="">부동산 전체</option>';
+        agencySelect.innerHTML = '<option value="">🏢 부동산 전체</option>';
         
         const agencies = new Set();
         roomDataStore.forEach(room => {
@@ -849,13 +1036,28 @@
     }
 
     // 🏠 카드 형태 리스트 렌더링 함수
+    // 숫자 값에서 단위 문자 등을 걷어내고 순수 숫자만 추출 (없으면 null)
+    function toNum(v) {
+        if (v === undefined || v === null || String(v).trim() === '') return null;
+        const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+        return isNaN(n) ? null : n;
+    }
+
     function renderRoomCards() {
         const container = document.getElementById('roomCardContainer');
         container.innerHTML = '';
 
-        const searchText = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase().trim() : '';
-        const selectedAgency = document.getElementById('agencyFilter') ? document.getElementById('agencyFilter').value : '';
-        const statusVal = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : '';
+        const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+
+        const searchText = getVal('searchInput').toLowerCase().trim();
+        const selectedAgency = getVal('agencyFilter');
+        const statusVal = getVal('statusFilter');
+        const depositMax = parseFloat(getVal('depositMax'));
+        const rentMax = parseFloat(getVal('rentMax'));
+        const walkMax = parseFloat(getVal('walkMax'));
+        const scoreMin = parseFloat(getVal('scoreMin'));
+        const dateFrom = getVal('dateFrom');
+        const dateTo = getVal('dateTo');
 
         let renderCount = 0;
 
@@ -864,9 +1066,26 @@
             const roomAgency = (room['부동산 이름'] || '').trim();
             const roomStatus = room['평가'] || '';
 
+            const dep = toNum(room['보증금(만원)']);
+            const rentNum = toNum(room['월세+관리비(만원)']);
+            const walk = toNum(room['도보거리(분)']);
+            const scoreNum = toNum(room['최종점수']);
+            const visit = formatDateOnly(room['방문일자']); // YYYY-MM-DD 또는 '-'
+
+            // 텍스트 / 드롭다운 필터
             if (searchText && !roomName.includes(searchText)) return;
             if (selectedAgency && roomAgency !== selectedAgency) return;
             if (statusVal && roomStatus !== statusVal) return;
+
+            // 숫자 범위 필터 (보증금·월세·도보는 이하, 점수는 이상)
+            if (!isNaN(depositMax) && (dep === null || dep > depositMax)) return;
+            if (!isNaN(rentMax) && (rentNum === null || rentNum > rentMax)) return;
+            if (!isNaN(walkMax) && (walk === null || walk > walkMax)) return;
+            if (!isNaN(scoreMin) && (scoreNum === null || scoreNum < scoreMin)) return;
+
+            // 방문일자 범위 필터
+            if (dateFrom && (visit === '-' || visit < dateFrom)) return;
+            if (dateTo && (visit === '-' || visit > dateTo)) return;
 
             renderCount++;
 
@@ -915,6 +1134,19 @@
         if (renderCount === 0) {
             container.innerHTML = '<div class="loading-spinner">조건에 맞는 방이 없거나 등록되지 않았습니다.</div>';
         }
+    }
+
+    // ↺ 모든 필터 초기화
+    function resetFilters() {
+        ['searchInput', 'depositMax', 'rentMax', 'walkMax', 'scoreMin', 'dateFrom', 'dateTo'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const agency = document.getElementById('agencyFilter');
+        const status = document.getElementById('statusFilter');
+        if (agency) agency.value = '';
+        if (status) status.value = '';
+        renderRoomCards();
     }
 
     function updateUsedPhotoUrls(excludeIndex = null) {
@@ -990,7 +1222,11 @@
         document.getElementById('addPhotoUrl').value = selectedPhotoUrls.join(', ');
     }
 
-    function openFormModal(editIndex = null) {
+    async function openFormModal(editIndex = null) {
+        // ⭐ 추가/수정 진입 시 비밀번호 확인
+        const ok = await requestPassword();
+        if (!ok) return;
+
         currentEditModalIndex = editIndex;
         const form = document.getElementById('roomForm');
         form.reset();
@@ -1085,12 +1321,14 @@
         calculateScore();
         updateUsedPhotoUrls(editIndex);
         document.getElementById('formModal').classList.add('active');
+        updateBodyScrollLock();
         fetchDrivePhotos();
     }
 
     function closeFormModal() {
         document.getElementById('formModal').classList.remove('active');
         document.getElementById('roomForm').reset();
+        updateBodyScrollLock();
     }
 
     function submitRoomForm(event) {
@@ -1166,7 +1404,11 @@
         });
     }
 
-    function deleteRoom(rowIndex) {
+    async function deleteRoom(rowIndex) {
+        // ⭐ 삭제도 비밀번호 확인
+        const ok = await requestPassword();
+        if (!ok) return;
+
         if (!confirm('정말로 이 방 정보를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.')) {
             return;
         }
@@ -1244,7 +1486,7 @@
 
         const content = `
             ${photosHtml}
-            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #4a3b69;">${room['방 이름'] || '이름 없음'}</h2>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: var(--heading);">${room['방 이름'] || '이름 없음'}</h2>
             
             <div style="display:flex; gap:10px; align-items:center; margin-bottom: 20px; flex-wrap: wrap;">
                 <span class="badge ${badgeClass}" style="font-size: 14px; padding: 6px 14px;">${room['평가'] || '미선택'}</span>
@@ -1265,9 +1507,7 @@
 
             <div style="margin-top:20px; padding-top: 15px; border-top: 2px solid var(--border);">
                 <h4 style="margin: 0 0 8px 0; font-size:15px; color: var(--accent-hover);">📝 메모 및 특이사항</h4>
-                <div style="font-size:14px; white-space:pre-wrap; text-align: left; line-height: 1.5; color: var(--text-main);">
-                    ${room['메모/특이사항'] || '기록된 메모가 없습니다.'}
-                </div>
+                <div style="font-size:14px; white-space:pre-wrap; text-align: left; line-height: 1.5; color: var(--text-main);">${(room['메모/특이사항'] || '기록된 메모가 없습니다.').trim()}</div>
             </div>
         `;
 
@@ -1281,10 +1521,12 @@
         }
 
         document.getElementById('detailModal').classList.add('active');
+        updateBodyScrollLock();
     }
 
     function closeDetailModal() {
         document.getElementById('detailModal').classList.remove('active');
+        updateBodyScrollLock();
     }
 </script>
 </body>
