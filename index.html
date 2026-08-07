@@ -807,7 +807,7 @@
                    onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmPassword(); }">
             <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePasswordVisibility()" aria-label="비밀번호 표시">👁️</button>
         </div>
-        <div id="passwordError" style="display:none; color: var(--danger-text); font-size: 13px; margin-top: 8px;">❌ 비밀번호가 올바르지 않습니다.</div>
+        <div id="passwordError" style="display:none; color: var(--danger-text); font-size: 13px; margin-top: 8px;">❌ 비밀번호를 입력해 주세요.</div>
         <div style="text-align: right; margin-top: 16px;">
             <button type="button" class="btn btn-outline" onclick="cancelPassword()">취소</button>
             <button type="button" class="btn" onclick="confirmPassword()">확인</button>
@@ -818,10 +818,17 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyrnhVomMDyyFwlKEWv-cuX3eqbCLHswLpwojJnVHxipwSFy8Y8qq9T-PYpHhVwfdzu/exec";
 
-    // ⭐ 추가/수정 보호용 비밀번호 (하드코딩)
-    const EDIT_PASSWORD = "REDACTED-OLD-PASSWORD";
-    let isAuthenticated = false; // 한 번 인증하면 새로고침 전까지 유지
+    // ⭐ 비밀번호는 코드에 두지 않는다. 실제 검증은 Apps Script(doPost)가 수행하고,
+    //    여기서는 입력값을 메모리에만 잠시 보관했다가 저장/삭제 요청에 함께 보낸다.
+    let editPassword = null;     // 사용자가 입력한 비밀번호 (새로고침하면 사라짐)
+    let isAuthenticated = false; // 서버가 한 번 통과시키면 새로고침 전까지 유지
     let pwResolve = null;        // 비밀번호 모달 결과를 전달할 resolve 함수
+
+    // 서버가 인증 실패를 돌려줬을 때 호출: 다음 시도에서 다시 비밀번호를 묻게 만든다
+    function resetAuth() {
+        isAuthenticated = false;
+        editPassword = null;
+    }
 
     // 팝업이 하나라도 열려 있으면 배경(body) 스크롤 잠금
     function updateBodyScrollLock() {
@@ -847,14 +854,15 @@
 
     function confirmPassword() {
         const input = document.getElementById('passwordInput');
-        if (input.value === EDIT_PASSWORD) {
-            isAuthenticated = true;
-            closePasswordModal(true);
-        } else {
+        if (!input.value) {
             document.getElementById('passwordError').style.display = 'block';
-            input.value = '';
             input.focus();
+            return;
         }
+        // 맞는지 틀린지는 서버(doPost)가 판단한다. 여기서는 값만 들고 진행.
+        editPassword = input.value;
+        isAuthenticated = true;
+        closePasswordModal(true);
     }
 
     function cancelPassword() {
@@ -1355,6 +1363,7 @@
 
         const payload = {
             action: rowIndex ? 'update' : 'create',
+            password: editPassword,   // ⭐ 서버에서 검증
             rowIndex: rowIndex,
             visitDate: document.getElementById('addVisitDate').value,
             name: document.getElementById('addName').value,
@@ -1389,6 +1398,11 @@
         })
         .then(res => res.json())
         .then(result => {
+            if (result && result.error === 'unauthorized') {
+                resetAuth();
+                alert('❌ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.');
+                return;
+            }
             alert(rowIndex ? '✏️ 성공적으로 정보가 수정되었습니다!' : '🎉 새로운 방이 등록되었습니다!');
             closeFormModal();
             closeDetailModal();
@@ -1417,7 +1431,7 @@
         deleteBtn.disabled = true;
         deleteBtn.innerText = "삭제 중...";
 
-        const payload = { action: 'delete', rowIndex: rowIndex };
+        const payload = { action: 'delete', rowIndex: rowIndex, password: editPassword };
 
         fetch(WEB_APP_URL, {
             method: 'POST',
@@ -1425,6 +1439,11 @@
         })
         .then(res => res.json())
         .then(result => {
+            if (result && result.error === 'unauthorized') {
+                resetAuth();
+                alert('❌ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.');
+                return;
+            }
             alert('🗑️ 성공적으로 삭제되었습니다.');
             closeDetailModal();
             fetchRoomData();
