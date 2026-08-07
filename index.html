@@ -820,6 +820,19 @@
 
     // ⭐ 비밀번호는 코드에 두지 않는다. 실제 검증은 Apps Script(doPost)가 수행하고,
     //    여기서는 입력값을 메모리에만 잠시 보관했다가 저장/삭제 요청에 함께 보낸다.
+    // via.placeholder.com 이 서비스 종료되어 대체 이미지를 인라인 SVG(data URI)로 처리한다.
+    // 외부 요청이 없으므로 오프라인에서도 깨지지 않고, 콘솔에 404 가 쌓이지 않는다.
+    function placeholderImg(text, w, h) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`
+            + `<rect width="100%" height="100%" fill="#e9edf3"/>`
+            + `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"`
+            + ` font-family="sans-serif" font-size="14" fill="#98a3b5">${text}</text></svg>`;
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+    const IMG_NO_IMAGE   = placeholderImg('사진 없음', 300, 160);
+    const IMG_LOAD_ERROR = placeholderImg('이미지 오류', 300, 160);
+    const IMG_THUMB_ERROR = placeholderImg('오류', 180, 180);
+
     let editPassword = null;     // 사용자가 입력한 비밀번호 (새로고침하면 사라짐)
     let isAuthenticated = false; // 서버가 한 번 통과시키면 새로고침 전까지 유지
     let pwResolve = null;        // 비밀번호 모달 결과를 전달할 resolve 함수
@@ -1141,7 +1154,7 @@
             const walkTime = room['도보거리(분)'];
             const walkTimeText = (walkTime !== undefined && walkTime !== null && String(walkTime).trim() !== '') ? `도보 ${walkTime}분` : '도보 정보 없음';
             
-            let thumbUrl = 'https://via.placeholder.com/300x160?text=No+Image';
+            let thumbUrl = IMG_NO_IMAGE;
             if (room['사진URL']) {
                 const urls = room['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
                 if (urls.length > 0) thumbUrl = urls[0];
@@ -1152,7 +1165,7 @@
             card.onclick = () => openDetailModal(originalIndex);
 
             card.innerHTML = `
-                <img src="${thumbUrl}" class="room-card-thumb" alt="방 썸네일" onerror="this.src='https://via.placeholder.com/300x160?text=Image+Error'">
+                <img src="${thumbUrl}" class="room-card-thumb" alt="방 썸네일" onerror="this.onerror=null; this.src=IMG_LOAD_ERROR;">
                 <div class="room-card-body">
                     ${roomAgency ? `<div class="room-card-agency">🏢 ${roomAgency}</div>` : ''}
                     <div class="room-card-header">
@@ -1241,7 +1254,7 @@
                 item.className = `photo-picker-item ${isSelected ? 'selected' : ''}`;
                 item.onclick = () => toggleSelectPhoto(photo.url, item);
                 item.innerHTML = `
-                    <img src="${photo.url}" alt="${photo.name}" title="${photo.name}" onerror="this.src='https://via.placeholder.com/180?text=Error'">
+                    <img src="${photo.url}" alt="${photo.name}" title="${photo.name}" onerror="this.onerror=null; this.src=IMG_THUMB_ERROR;">
                     <div class="check-badge">✓</div>
                 `;
             }
@@ -1520,7 +1533,7 @@
             urls.forEach((url, idx) => {
                 photosHtml += `
                     <a href="${url}" data-fancybox="${galleryGroupId}" data-caption="${room['방 이름'] || '사진'} (${idx + 1}/${urls.length})">
-                        <img src="${url}" alt="방 사진" onerror="this.src='https://via.placeholder.com/180?text=Image+Error'">
+                        <img src="${url}" alt="방 사진" onerror="this.onerror=null; this.src=IMG_THUMB_ERROR;">
                     </a>
                 `;
             });
