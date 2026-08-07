@@ -810,7 +810,7 @@
         <div id="passwordError" style="display:none; color: var(--danger-text); font-size: 13px; margin-top: 8px;">❌ 비밀번호를 입력해 주세요.</div>
         <div style="text-align: right; margin-top: 16px;">
             <button type="button" class="btn btn-outline" onclick="cancelPassword()">취소</button>
-            <button type="button" class="btn" onclick="confirmPassword()">확인</button>
+            <button type="button" class="btn" id="pwConfirmBtn" onclick="confirmPassword()">확인</button>
         </div>
     </div>
 </div>
@@ -852,17 +852,48 @@
         });
     }
 
-    function confirmPassword() {
+    // 입력 즉시 서버에 확인 요청(action:'verify')을 보내고, 통과했을 때만 모달을 닫는다.
+    async function confirmPassword() {
         const input = document.getElementById('passwordInput');
+        const errorEl = document.getElementById('passwordError');
+        const btn = document.getElementById('pwConfirmBtn');
+
         if (!input.value) {
-            document.getElementById('passwordError').style.display = 'block';
+            errorEl.textContent = '❌ 비밀번호를 입력해 주세요.';
+            errorEl.style.display = 'block';
             input.focus();
             return;
         }
-        // 맞는지 틀린지는 서버(doPost)가 판단한다. 여기서는 값만 들고 진행.
-        editPassword = input.value;
-        isAuthenticated = true;
-        closePasswordModal(true);
+
+        btn.disabled = true;
+        btn.innerText = '확인 중...';
+        errorEl.style.display = 'none';
+
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'verify', password: input.value })
+            });
+            const result = await res.json();
+
+            if (result && result.ok) {
+                editPassword = input.value;
+                isAuthenticated = true;
+                closePasswordModal(true);
+            } else {
+                errorEl.textContent = '❌ 비밀번호가 올바르지 않습니다.';
+                errorEl.style.display = 'block';
+                input.value = '';
+                input.focus();
+            }
+        } catch (err) {
+            console.error(err);
+            errorEl.textContent = '❌ 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+            errorEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '확인';
+        }
     }
 
     function cancelPassword() {

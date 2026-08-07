@@ -25,6 +25,12 @@ function unauthorizedResponse() {
  *   var data = JSON.parse(e.postData.contents);
  *   if (!isAuthorized(data)) return unauthorizedResponse();
  *
+ *   // 비밀번호 모달에서 보내는 사전 확인 요청. 시트는 건드리지 않는다.
+ *   if (data.action === 'verify') {
+ *     return ContentService.createTextOutput(JSON.stringify({ ok: true }))
+ *       .setMimeType(ContentService.MimeType.JSON);
+ *   }
+ *
  *   ... 기존 create / update / delete 처리 ...
  * }
  *
