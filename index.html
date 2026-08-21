@@ -1044,13 +1044,79 @@
         return score;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // Apps Script 는 드물게 JSON 대신 오류 HTML(404 등)을 돌려준다. 그러면
+    // response.json() 이 예외를 던지는데, 원인이 무엇이든 같은 메시지만 보여서는
+    // 진단이 안 된다. 여기서 원인을 구분하고, 간헐적 실패는 짧게 재시도해 흡수한다.
+    // ─────────────────────────────────────────────────────────────
+    class FetchJsonError extends Error {
+        constructor(message, kind) {
+            super(message);
+            this.kind = kind;   // network | http | auth | notjson
+        }
+    }
+
+    async function fetchJson(url) {
+        let res;
+        try {
+            res = await fetch(url);
+        } catch (e) {
+            throw new FetchJsonError('네트워크에 연결하지 못했습니다. 인터넷 연결이나 방화벽을 확인하세요.', 'network');
+        }
+
+        const text = await res.text();
+
+        if (!res.ok) {
+            throw new FetchJsonError(`서버가 HTTP ${res.status} 를 반환했습니다. 잠시 후 다시 시도해 주세요.`, 'http');
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            const needsLogin = text.includes('accounts.google.com') || text.includes('ServiceLogin');
+            throw new FetchJsonError(
+                needsLogin
+                    ? '웹앱이 구글 로그인을 요구합니다. 배포의 액세스 권한을 “모든 사용자”로 바꿔주세요.'
+                    : '서버가 JSON 대신 오류 페이지를 반환했습니다. Apps Script 재배포를 확인하세요.',
+                needsLogin ? 'auth' : 'notjson');
+        }
+    }
+
+    // 실패 시 1초 → 3초 간격으로 두 번 더 시도한다(총 3회).
+    // onRetry(회차, 총횟수) 로 진행 상황을 알린다.
+    async function fetchJsonWithRetry(url, onRetry) {
+        const delays = [1000, 3000];
+        let lastErr;
+
+        for (let attempt = 0; attempt <= delays.length; attempt++) {
+            if (attempt > 0) {
+                if (onRetry) onRetry(attempt + 1, delays.length + 1);
+                await new Promise(r => setTimeout(r, delays[attempt - 1]));
+            }
+            try {
+                return await fetchJson(url);
+            } catch (e) {
+                lastErr = e;
+                // 권한 문제는 재시도해도 결과가 같다 — 즉시 포기하고 원인을 알린다.
+                if (e.kind === 'auth') break;
+            }
+        }
+        throw lastErr;
+    }
+
     function fetchRoomData() {
         const infoEl = document.getElementById('lastUpdatedInfo');
         infoEl.innerText = "🔄 구글 시트에서 데이터를 불러오는 중...";
 
-        fetch(WEB_APP_URL)
-            .then(response => response.json())
+        fetchJsonWithRetry(WEB_APP_URL, (n, total) => {
+            infoEl.innerText = `🔄 동기화 재시도 중… (${n}/${total})`;
+        })
             .then(data => {
+                if (!Array.isArray(data)) {
+                    throw new FetchJsonError(
+                        data && data.error ? `서버 오류: ${data.error}` : '서버 응답 형식이 예상과 다릅니다.',
+                        'notjson');
+                }
                 roomDataStore = data;
                 updateAgencyFilterOptions();
                 renderRoomCards();
@@ -1059,7 +1125,7 @@
             })
             .catch(error => {
                 console.error("데이터 동기화 에러:", error);
-                infoEl.innerText = "❌ 시트 동기화 실패. 스크립트 상태를 확인하세요.";
+                infoEl.innerText = `❌ 시트 동기화 실패 — ${error.message}`;
             });
     }
 
@@ -1216,17 +1282,23 @@
         const pickerEl = document.getElementById('drivePhotoPicker');
         pickerEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 15px;">🔄 드라이브 사진 로드 중...</div>';
 
-        fetch(WEB_APP_URL + '?action=getPhotos')
-            .then(res => res.json())
+        const notice = (msg, color) =>
+            `<div style="grid-column: 1/-1; text-align: center; color: ${color}; padding: 12px; line-height: 1.5;">${msg}</div>`;
+
+        // 사진 목록도 시트 조회와 같은 간헐적 오류를 겪는다 — 같은 재시도 경로를 쓴다.
+        fetchJsonWithRetry(WEB_APP_URL + '?action=getPhotos', (n, total) => {
+            pickerEl.innerHTML = notice(`🔄 사진 목록 재시도 중… (${n}/${total})`, 'var(--text-muted)');
+        })
             .then(photos => {
-                if (photos.error) {
-                    pickerEl.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--danger-text); padding: 10px;">❌ 오류: ${photos.error}</div>`;
+                if (photos && photos.error) {
+                    pickerEl.innerHTML = notice(`❌ 드라이브 오류: ${photos.error}`, 'var(--danger-text)');
                     return;
                 }
                 renderPhotoPicker(photos);
             })
             .catch(err => {
-                pickerEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger-text); padding: 10px;">❌ 사진 불러오기 실패</div>';
+                console.error("사진 목록 에러:", err);
+                pickerEl.innerHTML = notice(`❌ 사진 불러오기 실패 — ${err.message}`, 'var(--danger-text)');
             });
     }
 
