@@ -9,6 +9,8 @@
 > 방향키·클릭·스와이프로 넘기고, `F` 로 전체화면. 특정 장은 `#4` 처럼 링크할 수 있습니다.
 >
 > **[🏠 대시보드 열기 →](https://room-checklist-two.vercel.app/)**
+>
+> GitHub Pages 로도 열립니다 — [슬라이드](https://maybecocheon.github.io/room-checklist/about.html) · [대시보드](https://maybecocheon.github.io/room-checklist/)
 
 ## 무엇을 하는가
 
@@ -80,9 +82,12 @@
 
 이후 `main` 에 푸시하면 자동으로 재배포됩니다.
 
-**GitHub Pages 로도 볼 수 있습니다** — 레포 **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`**
-로 설정하면 `https://maybecocheon.github.io/room-checklist/` 와 `.../about.html` 이 열립니다.
+**GitHub Pages 도 함께 켜져 있습니다.** `.github/workflows/pages.yml` 이 `main` 푸시마다 레포 루트를
+그대로 Pages 에 올립니다 (`actions/configure-pages` 의 `enablement: true` 가 Pages 를 자동으로 활성화).
 빌드 과정이 없으므로 Vercel 과 병행해도 서로 간섭하지 않습니다.
+
+- Vercel: `https://room-checklist-two.vercel.app/`
+- GitHub Pages: `https://maybecocheon.github.io/room-checklist/`
 
 ## 알려진 한계
 
