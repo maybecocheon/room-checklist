@@ -3,294 +3,579 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>월세방 스마트 체크리스트 — 동작 방식 한 장 요약</title>
+<title>월세방 스마트 체크리스트 — 어떻게 동작하나</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
   :root{
-    --bg:#0d1220; --card:#161d31; --line:#2a3550; --ink:#eaf0ff; --mut:#94a3c4;
-    --a:#5b9dff;   /* 프론트 */
-    --b:#34d399;   /* 백엔드 */
-    --c:#fbbf24;   /* 데이터 */
-    --d:#c084fc;   /* 에이전트 */
-    --r:#fb7185;   /* 보안 */
+    --bg0:#0a0f1c; --bg1:#131b30; --card:#171f36;
+    --line:#2b3757; --ink:#eef3ff; --mut:#93a2c4; --dim:#6b7a9c;
+    --a:#5b9dff; --b:#34d399; --c:#fbbf24; --d:#c084fc; --r:#fb7185;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
+  html,body{height:100%;overflow:hidden}
   body{
-    background:radial-gradient(1200px 700px at 15% -10%,#1c2947 0%,var(--bg) 60%);
-    color:var(--ink); font-family:Pretendard,-apple-system,"Malgun Gothic",sans-serif;
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    background:var(--bg0); color:var(--ink);
+    font-family:Pretendard,-apple-system,"Malgun Gothic",sans-serif;
+    display:flex;align-items:center;justify-content:center;
   }
-  /* flex 부모가 1280px 를 줄이지 못하도록 고정한다. 축소는 transform: scale() 로만 한다. */
-  #stage{width:1280px;height:720px;flex:0 0 auto;transform-origin:center center;padding:22px 30px;display:flex;flex-direction:column;gap:12px}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:.94em;color:#cfe0ff}
+  #shell{width:1280px;height:720px;flex:0 0 auto;transform-origin:center center;position:relative}
 
-  header{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:9px}
-  h1{font-size:26px;letter-spacing:-.5px}
-  h1 span{color:var(--a)}
-  .sub{font-size:12.5px;color:var(--mut);margin-top:4px}
-  .repo{font-size:11.5px;color:var(--mut);text-align:right;line-height:1.75}
-  .repo b{color:var(--c);font-weight:600}
+  .slide{
+    position:absolute;inset:0;padding:42px 52px 62px;
+    display:flex;flex-direction:column;
+    background:radial-gradient(1100px 640px at 12% -12%,var(--bg1) 0%,var(--bg0) 62%);
+    border-radius:18px;border:1px solid var(--line);
+    opacity:0;transform:translateX(26px) scale(.995);pointer-events:none;
+    transition:opacity .34s ease,transform .34s ease;
+  }
+  .slide.active{opacity:1;transform:none;pointer-events:auto}
+  .slide.prev{transform:translateX(-26px) scale(.995)}
 
-  .lane-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:4px}
-  .dot{width:9px;height:9px;border-radius:3px}
-  .lane-title small{font-weight:400;color:var(--mut);font-size:11.5px}
+  .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--a);text-transform:uppercase}
+  h2{font-size:29px;letter-spacing:-.7px;margin-top:6px}
+  .lede{font-size:13.5px;color:var(--mut);margin-top:8px;line-height:1.6;max-width:900px}
+  .body{flex:1;min-height:0;margin-top:16px;display:flex;flex-direction:column}
 
-  .grid{flex:1;display:grid;grid-template-columns:1fr 378px;gap:14px;min-height:0}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;min-height:0}
+  /* 표지 */
+  #s1{justify-content:center;padding-left:72px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);
+    border:1px solid var(--line);background:#0f1729;border-radius:999px;padding:6px 14px;width:fit-content}
+  h1{font-size:50px;letter-spacing:-1.6px;line-height:1.16;margin:20px 0 0}
+  h1 em{font-style:normal;color:var(--a)}
+  .sub1{font-size:16px;color:var(--mut);margin-top:15px;line-height:1.65;max-width:640px}
+  .chips{display:flex;gap:9px;margin-top:26px;flex-wrap:wrap}
+  .chip{font-size:12.5px;font-weight:600;border-radius:8px;padding:7px 12px;border:1px solid}
+  .chip.a{color:#bcd8ff;border-color:#2f5a99;background:#12233f}
+  .chip.b{color:#9df0cd;border-color:#2b6b52;background:#102b23}
+  .chip.c{color:#ffe0a3;border-color:#7a5a1c;background:#2b2211}
+  .hint{margin-top:32px;font-size:12.5px;color:var(--dim)}
+  kbd{font-family:inherit;font-size:11.5px;background:#1b2440;border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:2px 7px;color:#c9d5ef}
 
-  svg{width:100%;height:100%;display:block}
-  .n-lbl{font:600 12.5px Pretendard,sans-serif;fill:#fff}
-  .n-sub{font:10.5px Pretendard,sans-serif;fill:#c6d2ee}
-  .e-lbl{font:10.5px Pretendard,sans-serif;fill:#9fb0d6}
-  .step{font:700 10.5px Pretendard,sans-serif;fill:#0d1220}
+  .cards{display:grid;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+  .card h3{font-size:14px;display:flex;align-items:center;gap:8px}
+  .card p{font-size:12.1px;color:var(--mut);line-height:1.55;margin-top:7px}
+  .card.ac{border-color:#3a5f9e}.card.bc{border-color:#2f6b53}
+  .card.cc{border-color:#7a5a1c}.card.rc{border-color:#7a3a4c}
 
-  ol.flow{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:1px}
-  ol.flow li{display:flex;gap:9px;font-size:11.3px;line-height:1.42;color:#d6def2}
-  .num{flex:0 0 19px;height:19px;border-radius:6px;background:var(--d);color:#1a1030;font-weight:800;font-size:10.5px;display:grid;place-items:center;margin-top:1px}
-  ol.flow b{color:#fff}
-  .tag{display:inline-block;background:#231a3d;border:1px solid #4c3a7a;color:#d9c6ff;border-radius:5px;padding:0 5px;font-size:10.5px;font-weight:600}
-  .tag.s{background:#132b23;border-color:#2f6b53;color:#8ff0c4}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;
+    display:flex;flex-direction:column;min-height:0}
+  .panel > h3{font-size:12.5px;font-weight:700;color:#dbe4f7;display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .dot{width:8px;height:8px;border-radius:3px;flex:0 0 auto}
+
+  svg{display:block;width:100%;height:100%}
+  .nl{font:600 12px Pretendard,sans-serif;fill:#fff}
+  .ns{font:10.5px Pretendard,sans-serif;fill:#c3d0ea}
+  .nt{font:700 11px Pretendard,sans-serif;fill:#0a0f1c}
+  .ne{font:10.5px Pretendard,sans-serif;fill:#93a2c4}
+
+  ol.steps{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ol.steps li{display:flex;gap:10px;font-size:12.2px;line-height:1.48;color:#d8e0f4}
+  ol.steps b{color:#fff}
+  .num{flex:0 0 20px;height:20px;border-radius:6px;font-weight:800;font-size:10.5px;
+    display:grid;place-items:center;margin-top:1px;background:var(--d);color:#1a1030}
+  .tag{display:inline-block;border-radius:5px;padding:1px 6px;font-size:11px;font-weight:600;
+    background:#231a3d;border:1px solid #4c3a7a;color:#dcc9ff}
+  .tag.s{background:#102b23;border-color:#2f6b53;color:#8ff0c4}
   .tag.r{background:#3a1a24;border-color:#7a3a4c;color:#ffc2ce}
 
-  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:8px 12px}
-  .kpi .v{font-size:15.5px;font-weight:800;color:var(--c)}
-  .kpi .k{font-size:11px;color:var(--mut);margin-top:2px}
+  .warn{background:#2e1f10;border:1px solid #7a5a1c;border-radius:12px;padding:12px 14px}
+  .warn h3{font-size:13px;color:#ffd98a;display:flex;gap:8px;align-items:center}
+  .warn p{font-size:12px;color:#e4d3ae;line-height:1.55;margin-top:6px}
+  .limit{background:#241726;border:1px solid #6d3348;border-radius:12px;padding:12px 14px}
+  .limit h3{font-size:13px;color:#ffb9c8}
+  .limit ul{margin:7px 0 0 15px;font-size:12px;color:#e8cdd6;line-height:1.6}
+
+  nav{position:absolute;left:52px;right:52px;bottom:19px;display:flex;align-items:center;gap:14px}
+  .dots{display:flex;gap:7px;flex:1}
+  .pip{width:26px;height:4px;border-radius:99px;background:#26314e;border:0;cursor:pointer;padding:0;
+    transition:background .2s,width .2s}
+  .pip:hover{background:#3a4972}
+  .pip.on{background:var(--a);width:40px}
+  .nav-lbl{font-size:11.5px;color:var(--dim);white-space:nowrap}
+  .arrow{background:#1b2440;border:1px solid var(--line);color:#c9d5ef;border-radius:8px;
+    width:30px;height:26px;font-size:13px;cursor:pointer;line-height:1}
+  .arrow:hover{background:#243155}
+  .arrow:disabled{opacity:.32;cursor:default}
+  a.home{font-size:11.5px;color:var(--a);text-decoration:none;font-weight:600}
+  a.home:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<div id="stage">
+<div id="shell">
 
-  <header>
-    <div>
-      <h1>🏠 월세방 스마트 체크리스트 — <span>동작 방식 한 장 요약</span></h1>
-      <div class="sub">단일 HTML 프론트엔드 · Apps Script 백엔드 · 서버측 인증 — 그리고 이걸 만들고 고친 에이전트 흐름</div>
+<!-- ═══ 1. 표지 ═══ -->
+<section class="slide active">
+  <div class="badge">🏠 github.com/maybecocheon/room-checklist</div>
+  <h1>월세방을 <em>점수로</em> 비교하는<br>현장 체크리스트</h1>
+  <p class="sub1">방을 보고 나오면 폰으로 체크리스트를 채웁니다. 쌓인 방들은 카드로 나열되고,
+     보증금·월세·도보시간·점수로 걸러서 비교합니다.</p>
+  <div class="chips">
+    <span class="chip a">HTML 단일 파일</span>
+    <span class="chip b">Google Apps Script</span>
+    <span class="chip b">Sheets + Drive = DB</span>
+    <span class="chip c">Vercel 정적 배포</span>
+  </div>
+  <p class="hint"><kbd>←</kbd> <kbd>→</kbd> 방향키 · 클릭 · 스와이프로 이동 &nbsp;·&nbsp; <kbd>F</kbd> 전체화면</p>
+</section>
+
+<!-- ═══ 2. 무엇을 하는가 ═══ -->
+<section class="slide">
+  <div class="eyebrow">01 — What it does</div>
+  <h2>무엇을 하는 도구인가</h2>
+  <p class="lede">기억에 의존하면 세 번째 방부터 앞의 방이 흐려집니다. 그래서 <b>그 자리에서 기록하고, 규칙으로 점수를 매깁니다.</b></p>
+
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:13px;">
+    <div class="cards" style="grid-template-rows:repeat(2,1fr)">
+      <div class="card ac">
+        <h3>📝 현장 체크리스트</h3>
+        <p>방향·채광·수압·콘센트·곰팡이·누수·벌레·엘리베이터·중문·주차 등을 방에서 나오기 전에 입력합니다.</p>
+      </div>
+      <div class="card bc">
+        <h3>📊 비교 대시보드</h3>
+        <p>보증금·월세·도보시간·점수·방문일·부동산·평가 상태로 필터링. 상세 모달에서 이전/다음 방을 바로 넘겨 비교합니다.</p>
+      </div>
     </div>
-    <div class="repo">github.com/<b>maybecocheon/room-checklist</b> · Vercel 배포<br>index.html 1개 파일 + Code.gs<br>
-      <a href="./" style="color:#5b9dff;text-decoration:none;font-weight:600">→ 대시보드 열기</a></div>
-  </header>
+    <div class="cards" style="grid-template-rows:repeat(2,1fr)">
+      <div class="card cc">
+        <h3>🖼 사진 관리</h3>
+        <p>구글 드라이브 폴더의 사진을 골라 붙입니다. 다른 방이 이미 쓴 사진은 <b>“사용 중”</b>으로 표시돼 중복 선택이 막힙니다.</p>
+      </div>
+      <div class="card rc">
+        <h3>📚 지식 탭 4종</h3>
+        <p>계약 전 안전장치 · 현장 점검 노하우 · 추천 특약사항 · 생활 편의 체크. Gemini와 설계해 코드로 고정했습니다.</p>
+      </div>
+    </div>
+  </div>
 
-  <div class="grid">
+  <div class="panel" style="margin-top:13px;flex:0 0 142px">
+    <h3><i class="dot" style="background:var(--c)"></i>⚡ 점수는 이렇게 계산됩니다
+      <span style="font-weight:400;color:var(--dim)">— 기본 50점에서 가점·감점, 0~100으로 클램프</span></h3>
+    <svg viewBox="0 0 1120 92" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="12" width="1120" height="21" rx="6" fill="#1f2a45"/>
+      <rect x="0" y="12" width="470" height="21" rx="6" fill="#3a5f9e"/>
+      <text x="14" y="28" class="nl" style="font-size:11.5px">기본 50점</text>
+      <rect x="474" y="12" width="374" height="21" rx="6" fill="#2f6b53"/>
+      <text x="488" y="28" class="nl" style="font-size:11.5px">가점 — 남향 +10 · 채광 +10 · 수압 +10 · 주차 +8 · 콘센트 +5</text>
+      <rect x="852" y="12" width="158" height="21" rx="6" fill="#4a6b2f"/>
+      <text x="864" y="28" class="nl" style="font-size:11.5px">엘베·중문·현관 각 +5</text>
+      <rect x="1014" y="12" width="106" height="21" rx="6" fill="#5a5a2f"/>
+      <text x="1024" y="28" class="nl" style="font-size:11.5px">옵션 1개당 +1</text>
 
-    <!-- ===== 왼쪽: 런타임 ===== -->
-    <section class="panel">
-      <div class="lane-title"><i class="dot" style="background:var(--a)"></i>런타임 흐름 <small>— 방을 기록하고 비교하기까지, 그리고 무엇이 막는가</small></div>
-      <svg viewBox="0 0 860 508" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="48" width="352" height="21" rx="6" fill="#7a3a4c"/>
+      <text x="14" y="64" class="nl" style="font-size:11.5px">감점 — 곰팡이 −10 · 누수 −10 · 벌레 −10</text>
+      <text x="368" y="64" class="ne">치명적 하자는 크게 깎아 상위권에서 밀어냅니다</text>
+      <text x="0" y="88" class="ne">0점</text>
+      <text x="1120" y="88" class="ne" text-anchor="end">100점</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══ 3. 런타임 구조 ═══ -->
+<section class="slide">
+  <div class="eyebrow">02 — Architecture</div>
+  <h2>서버도 빌드도 없는 3층 구조</h2>
+  <p class="lede">정적 HTML 한 장이 Apps Script 웹앱 URL 하나와 통신합니다. DB 자리에는 구글 시트가, 이미지 스토리지 자리에는 드라이브 폴더가 들어갑니다.</p>
+
+  <div class="body">
+    <svg viewBox="0 0 1170 428" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
+        <marker id="y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/></marker>
+        <marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7d8db5"/></marker>
+        <marker id="rd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fb7185"/></marker>
+      </defs>
+
+      <rect x="0"   y="24" width="322" height="398" rx="13" fill="#5b9dff0f" stroke="#5b9dff33"/>
+      <rect x="348" y="24" width="440" height="398" rx="13" fill="#34d3990f" stroke="#34d39933"/>
+      <rect x="814" y="24" width="356" height="398" rx="13" fill="#fbbf240f" stroke="#fbbf2433"/>
+      <text x="161" y="14" text-anchor="middle" class="nl" fill="#5b9dff">① 브라우저 — Vercel 정적 호스팅</text>
+      <text x="568" y="14" text-anchor="middle" class="nl" fill="#34d399">② Apps Script 웹앱 (Code.gs)</text>
+      <text x="992" y="14" text-anchor="middle" class="nl" fill="#fbbf24">③ 구글 데이터 저장소</text>
+
+      <g><rect x="20" y="40" width="282" height="54" rx="10" fill="#1c2a49" stroke="#5b9dff77"/>
+        <text x="36" y="62" class="nl">👤 현장에서 방 방문</text>
+        <text x="36" y="82" class="ns">폰으로 즉시 입력 · 조회는 누구나 가능</text></g>
+      <g><rect x="20" y="106" width="282" height="70" rx="10" fill="#1c2a49" stroke="#5b9dff77"/>
+        <text x="36" y="128" class="nl">📝 체크리스트 폼</text>
+        <text x="36" y="148" class="ns">15개 항목 입력 · 드라이브 사진 선택</text>
+        <text x="36" y="166" class="ns">입력하는 즉시 점수가 갱신됩니다</text></g>
+      <g><rect x="20" y="188" width="282" height="66" rx="10" fill="#213259" stroke="#5b9dff"/>
+        <text x="36" y="210" class="nl">⚡ 점수 계산 (클라이언트)</text>
+        <text x="36" y="230" class="ns">서버 왕복 없이 즉시 계산</text>
+        <text x="36" y="248" class="ns">결과값만 시트에 함께 저장</text></g>
+      <g><rect x="20" y="266" width="282" height="66" rx="10" fill="#1c2a49" stroke="#5b9dff77"/>
+        <text x="36" y="288" class="nl">📊 대시보드 카드 · 필터</text>
+        <text x="36" y="308" class="ns">7가지 조건으로 좁혀 보기</text>
+        <text x="36" y="326" class="ns">부동산 목록은 데이터에서 자동 생성</text></g>
+      <g><rect x="20" y="344" width="282" height="58" rx="10" fill="#1c2a49" stroke="#5b9dff77"/>
+        <text x="36" y="366" class="nl">🖼 상세 모달 · 갤러리</text>
+        <text x="36" y="386" class="ns">Fancybox · 사진 없으면 인라인 SVG 대체</text></g>
+
+      <g><rect x="368" y="48" width="400" height="78" rx="10" fill="#11342a" stroke="#34d399"/>
+        <text x="386" y="70" class="nl">🔁 doGet( ) — 공개 조회</text>
+        <text x="386" y="90" class="ns">전체 방 목록을 JSON 으로 반환</text>
+        <text x="386" y="106" class="ns">날짜는 시트 시간대 문자열로 변환 (UTC 하루 밀림 방지)</text>
+        <text x="386" y="120" class="ns">?action=getPhotos → 드라이브 사진 목록</text></g>
+
+      <g><rect x="368" y="142" width="400" height="84" rx="10" fill="#3a1c26" stroke="#fb7185" stroke-width="1.7"/>
+        <text x="386" y="164" class="nl">🛡 isAuthorized( ) — 유일한 방어선</text>
+        <text x="386" y="184" class="ns">모든 쓰기 요청이 반드시 여기를 먼저 통과합니다</text>
+        <text x="386" y="202" class="ns">비밀번호는 스크립트 속성에서 읽어 비교</text>
+        <text x="386" y="220" class="ns">불일치 → {"ok":false,"error":"unauthorized"}</text></g>
+
+      <g><rect x="368" y="244" width="400" height="62" rx="10" fill="#11342a" stroke="#34d399"/>
+        <text x="386" y="266" class="nl">📮 doPost( ) — create · update · delete</text>
+        <text x="386" y="286" class="ns">rowIndex 로 해당 행만 정확히 지정해 수정·삭제</text>
+        <text x="386" y="300" class="ns">알 수 없는 action 도 JSON 으로 응답 (원인이 드러나게)</text></g>
+
+      <g><rect x="368" y="324" width="400" height="78" rx="10" fill="#16382d" stroke="#34d39988" stroke-dasharray="4 3"/>
+        <text x="386" y="346" class="nl">🤖 런타임에 LLM 호출은 없습니다</text>
+        <text x="386" y="366" class="ns">체크 항목·배점·특약 문구는 Gemini 와 대화로 설계한 뒤</text>
+        <text x="386" y="382" class="ns">코드로 고정했습니다. 실행 중에는 순수 규칙 계산만 돕니다.</text>
+        <text x="386" y="396" class="ns">→ 응답이 빠르고, 비용이 0이고, 결과가 매번 같습니다</text></g>
+
+      <g><rect x="834" y="48" width="316" height="82" rx="10" fill="#3a2f10" stroke="#fbbf24"/>
+        <text x="852" y="70" class="nl">📄 Google Sheets — 데이터베이스</text>
+        <text x="852" y="90" class="ns">방 이름·부동산·보증금·월세·도보·구조·주차</text>
+        <text x="852" y="108" class="ns">방향·채광·수압·최종점수·평가·사진URL·메모</text>
+        <text x="852" y="124" class="ns">시트를 공유하면 그대로 협업 도구가 됩니다</text></g>
+      <g><rect x="834" y="148" width="316" height="76" rx="10" fill="#3a2f10" stroke="#fbbf24"/>
+        <text x="852" y="170" class="nl">🖼 Google Drive 폴더</text>
+        <text x="852" y="190" class="ns">현장 사진을 올려두면 자동으로 목록화</text>
+        <text x="852" y="208" class="ns">이미 다른 방이 쓴 사진은 선택 불가로 표시</text>
+        <text x="852" y="220" class="ns">→ 같은 사진을 두 방에 붙이는 실수 차단</text></g>
+      <g><rect x="834" y="242" width="316" height="72" rx="10" fill="#2a1b28" stroke="#fb7185"/>
+        <text x="852" y="264" class="nl">🔑 스크립트 속성 (Script Properties)</text>
+        <text x="852" y="284" class="ns">EDIT_PASSWORD 가 사는 유일한 장소</text>
+        <text x="852" y="302" class="ns">코드·깃 히스토리·프론트엔드 어디에도 없습니다</text></g>
+      <g><rect x="834" y="332" width="316" height="70" rx="10" fill="#2b2517" stroke="#fbbf2477"/>
+        <text x="852" y="354" class="nl">📚 정적 지식 탭 4종</text>
+        <text x="852" y="374" class="ns">계약 안전장치 / 현장 점검 / 추천 특약 / 생활 편의</text>
+        <text x="852" y="392" class="ns">네트워크 없이 즉시 열립니다</text></g>
+
+      <path d="M161 94 L161 106" stroke="#7d8db5" stroke-width="1.7" marker-end="url(#w)"/>
+      <path d="M161 176 L161 188" stroke="#7d8db5" stroke-width="1.7" marker-end="url(#w)"/>
+      <path d="M161 332 L161 344" stroke="#7d8db5" stroke-width="1.7" marker-end="url(#w)"/>
+
+      <path d="M302 142 C 336 142, 336 182, 368 182" stroke="#fb7185" stroke-width="2" fill="none" marker-end="url(#rd)"/>
+      <text x="306" y="134" class="ne" fill="#fb7185">쓰기 요청</text>
+      <path d="M368 84 C 332 84, 330 294, 302 294" stroke="#34d399" stroke-width="1.8" fill="none" marker-end="url(#g)" stroke-dasharray="6 4"/>
+      <text x="318" y="248" class="ne" transform="rotate(-90 318 248)">GET 목록</text>
+
+      <path d="M568 226 L568 244" stroke="#fb7185" stroke-width="1.8" marker-end="url(#rd)"/>
+      <text x="578" y="240" class="ne" fill="#fb7185">통과한 요청만</text>
+
+      <path d="M768 84 L834 88" stroke="#fbbf24" stroke-width="1.9" fill="none" marker-end="url(#y)"/>
+      <path d="M768 102 C 802 102, 800 182, 834 182" stroke="#fbbf24" stroke-width="1.6" fill="none" marker-end="url(#y)" stroke-dasharray="4 3"/>
+      <path d="M768 274 C 806 274, 802 104, 834 104" stroke="#fbbf24" stroke-width="1.9" fill="none" marker-end="url(#y)"/>
+      <path d="M768 176 L834 264" stroke="#fb7185" stroke-width="1.7" fill="none" marker-end="url(#rd)" stroke-dasharray="4 3"/>
+      <text x="782" y="40" class="ne">읽기 / 쓰기</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══ 4. 인증 ═══ -->
+<section class="slide">
+  <div class="eyebrow">03 — Authentication</div>
+  <h2>비밀번호는 왜 서버로 옮겨졌나</h2>
+  <p class="lede">처음에는 <code style="color:var(--r)">const EDIT_PASSWORD = "…"</code> 가 HTML 안에 있었습니다.
+     브라우저가 읽어야 하는 값은 사용자도 읽습니다 — 클라이언트에 비밀은 존재할 수 없습니다.</p>
+
+  <div class="body" style="display:grid;grid-template-columns:1fr 352px;gap:13px;">
+    <div class="panel">
+      <h3><i class="dot" style="background:var(--r)"></i>등록 · 수정 · 삭제 요청의 생애</h3>
+      <svg viewBox="0 0 762 366" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#7d8db5"/></marker>
-          <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
-          <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#fb7185"/></marker>
-          <marker id="arY" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/></marker>
+          <marker id="sq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b9dff"/></marker>
+          <marker id="sr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fb7185"/></marker>
+          <marker id="sg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
         </defs>
+        <rect x="8"   y="4" width="150" height="30" rx="8" fill="#1c2a49" stroke="#5b9dff"/><text x="83"  y="24" text-anchor="middle" class="nl" style="font-size:11.5px">🌐 브라우저</text>
+        <rect x="212" y="4" width="150" height="30" rx="8" fill="#11342a" stroke="#34d399"/><text x="287" y="24" text-anchor="middle" class="nl" style="font-size:11.5px">⚙️ Apps Script</text>
+        <rect x="416" y="4" width="150" height="30" rx="8" fill="#2a1b28" stroke="#fb7185"/><text x="491" y="24" text-anchor="middle" class="nl" style="font-size:11.5px">🔑 스크립트 속성</text>
+        <rect x="610" y="4" width="144" height="30" rx="8" fill="#3a2f10" stroke="#fbbf24"/><text x="682" y="24" text-anchor="middle" class="nl" style="font-size:11.5px">📄 시트</text>
+        <line x1="83"  y1="38" x2="83"  y2="352" stroke="#2b3757" stroke-dasharray="4 4"/>
+        <line x1="287" y1="38" x2="287" y2="352" stroke="#2b3757" stroke-dasharray="4 4"/>
+        <line x1="491" y1="38" x2="491" y2="352" stroke="#2b3757" stroke-dasharray="4 4"/>
+        <line x1="682" y1="38" x2="682" y2="352" stroke="#2b3757" stroke-dasharray="4 4"/>
 
-        <rect x="0"   y="28" width="216" height="466" rx="12" fill="#5b9dff10" stroke="#5b9dff33"/>
-        <rect x="232" y="28" width="330" height="466" rx="12" fill="#34d39910" stroke="#34d39933"/>
-        <rect x="578" y="28" width="282" height="466" rx="12" fill="#fbbf2410" stroke="#fbbf2433"/>
-        <text x="108" y="18" text-anchor="middle" class="n-lbl" fill="#5b9dff">① 브라우저 · Vercel 정적 호스팅</text>
-        <text x="397" y="18" text-anchor="middle" class="n-lbl" fill="#34d399">② Apps Script 웹앱 (Code.gs)</text>
-        <text x="719" y="18" text-anchor="middle" class="n-lbl" fill="#fbbf24">③ 구글 데이터 저장소</text>
+        <circle cx="20" cy="60" r="9" fill="#5b9dff"/><text x="20" y="64" text-anchor="middle" class="nt">1</text>
+        <text x="36" y="64" class="ns">비밀번호 입력 — 메모리에만 보관, 코드에는 없음</text>
 
-        <!-- 프론트 -->
-        <g><rect x="16" y="42" width="182" height="52" rx="10" fill="#1d2a49" stroke="#5b9dff77"/>
-          <text x="30" y="62" class="n-lbl">👤 현장에서 방 방문</text>
-          <text x="30" y="80" class="n-sub">폰으로 바로 입력 · 조회는 누구나</text></g>
+        <circle cx="20" cy="102" r="9" fill="#5b9dff"/><text x="20" y="106" text-anchor="middle" class="nt">2</text>
+        <path d="M83 114 L287 114" stroke="#5b9dff" stroke-width="1.8" marker-end="url(#sq)"/>
+        <text x="92" y="108" class="ns">POST action:'verify' + password</text>
 
-        <g><rect x="16" y="106" width="182" height="66" rx="10" fill="#2a1b28" stroke="#fb7185"/>
-          <text x="30" y="126" class="n-lbl">🔒 비밀번호 모달</text>
-          <text x="30" y="144" class="n-sub">등록·수정·삭제 진입 시</text>
-          <text x="30" y="158" class="n-sub">입력값은 메모리에만 (코드에 없음)</text></g>
+        <circle cx="228" cy="146" r="9" fill="#fb7185"/><text x="228" y="150" text-anchor="middle" class="nt">3</text>
+        <path d="M287 158 L491 158" stroke="#fb7185" stroke-width="1.8" marker-end="url(#sr)"/>
+        <text x="296" y="152" class="ns">EDIT_PASSWORD 조회 후 비교</text>
 
-        <g><rect x="16" y="184" width="182" height="72" rx="10" fill="#1d2a49" stroke="#5b9dff77"/>
-          <text x="30" y="204" class="n-lbl">📝 체크리스트 폼</text>
-          <text x="30" y="222" class="n-sub">방향·채광·수압·곰팡이·누수·</text>
-          <text x="30" y="236" class="n-sub">벌레·엘리베이터·중문·주차…</text>
-          <text x="30" y="250" class="n-sub">드라이브 사진 선택</text></g>
+        <path d="M287 196 L83 196" stroke="#fb7185" stroke-width="1.8" marker-end="url(#sr)"/>
+        <text x="92" y="190" class="ns" fill="#ffc2ce">틀리면 error:'unauthorized' → 모달이 닫히지 않음</text>
 
-        <g><rect x="16" y="268" width="182" height="66" rx="10" fill="#20325c" stroke="#5b9dff"/>
-          <text x="30" y="288" class="n-lbl">⚡ 실시간 점수 계산</text>
-          <text x="30" y="306" class="n-sub">기본 50점 → 가점·감점</text>
-          <text x="30" y="320" class="n-sub">남향+10 · 곰팡이−10 · 0~100</text></g>
+        <path d="M287 232 L83 232" stroke="#34d399" stroke-width="1.8" marker-end="url(#sg)"/>
+        <text x="92" y="226" class="ns" fill="#9df0cd">맞으면 ok:true → 폼이 열림</text>
 
-        <g><rect x="16" y="346" width="182" height="62" rx="10" fill="#1d2a49" stroke="#5b9dff77"/>
-          <text x="30" y="366" class="n-lbl">📊 대시보드 카드</text>
-          <text x="30" y="384" class="n-sub">검색·부동산·평가·보증금·월세</text>
-          <text x="30" y="398" class="n-sub">도보·점수·방문일 필터</text></g>
+        <circle cx="20" cy="264" r="9" fill="#5b9dff"/><text x="20" y="268" text-anchor="middle" class="nt">4</text>
+        <path d="M83 276 L287 276" stroke="#5b9dff" stroke-width="1.8" marker-end="url(#sq)"/>
+        <text x="92" y="270" class="ns">POST create / update / delete + password</text>
 
-        <g><rect x="16" y="420" width="182" height="58" rx="10" fill="#1d2a49" stroke="#5b9dff77"/>
-          <text x="30" y="440" class="n-lbl">🖼 상세 모달 · 갤러리</text>
-          <text x="30" y="458" class="n-sub">Fancybox · 이전/다음 방 비교</text>
-          <text x="30" y="471" class="n-sub">사진 없으면 인라인 SVG 대체</text></g>
+        <circle cx="228" cy="304" r="9" fill="#fb7185"/><text x="228" y="308" text-anchor="middle" class="nt">5</text>
+        <text x="244" y="308" class="ns" fill="#ffc2ce">isAuthorized( ) 재검증 — 여기서 한 번 더 막힙니다</text>
 
-        <!-- 백엔드 -->
-        <g><rect x="250" y="46" width="296" height="58" rx="10" fill="#12352a" stroke="#34d399"/>
-          <text x="266" y="66" class="n-lbl">🔁 doGet( ) — 공개 조회</text>
-          <text x="266" y="84" class="n-sub">전체 방 목록 JSON · 날짜는 시트 시간대로</text>
-          <text x="266" y="98" class="n-sub">?action=getPhotos → 드라이브 사진 목록</text></g>
-
-        <g><rect x="250" y="120" width="296" height="76" rx="10" fill="#3a1c26" stroke="#fb7185" stroke-width="1.6"/>
-          <text x="266" y="140" class="n-lbl">🛡 isAuthorized( ) — 유일한 방어선</text>
-          <text x="266" y="158" class="n-sub">모든 쓰기 요청이 여기를 먼저 통과</text>
-          <text x="266" y="174" class="n-sub">비밀번호는 스크립트 속성에 보관</text>
-          <text x="266" y="188" class="n-sub">불일치 → {"error":"unauthorized"}</text></g>
-
-        <g><rect x="250" y="212" width="296" height="56" rx="10" fill="#12352a" stroke="#34d399"/>
-          <text x="266" y="232" class="n-lbl">✅ action:'verify' — 사전 확인</text>
-          <text x="266" y="250" class="n-sub">모달 단계에서만 호출 · 시트는 안 건드림</text>
-          <text x="266" y="263" class="n-sub">틀리면 모달이 닫히지 않음</text></g>
-
-        <g><rect x="250" y="284" width="296" height="60" rx="10" fill="#12352a" stroke="#34d399"/>
-          <text x="266" y="304" class="n-lbl">📮 doPost( ) — create · update · delete</text>
-          <text x="266" y="322" class="n-sub">rowIndex 로 해당 행만 정확히 지정</text>
-          <text x="266" y="336" class="n-sub">알 수 없는 action 도 JSON 으로 응답</text></g>
-
-        <g><rect x="250" y="360" width="296" height="56" rx="10" fill="#173d31" stroke="#34d39988" stroke-dasharray="4 3"/>
-          <text x="266" y="380" class="n-lbl">🤖 Gemini 바이브코딩 (설계 단계)</text>
-          <text x="266" y="398" class="n-sub">체크 항목·배점·특약 문구를 대화로 설계</text>
-          <text x="266" y="411" class="n-sub">→ 코드로 고정 (런타임 LLM 호출 없음)</text></g>
-
-        <g><rect x="250" y="432" width="296" height="48" rx="10" fill="#12352a" stroke="#34d39955"/>
-          <text x="266" y="452" class="n-lbl">⚠️ 코드 수정 후 반드시 “새 버전” 재배포</text>
-          <text x="266" y="470" class="n-sub">저장만 하면 배포된 URL 은 옛 코드를 계속 실행</text></g>
-
-        <!-- 데이터 -->
-        <g><rect x="596" y="46" width="248" height="76" rx="10" fill="#3a2f10" stroke="#fbbf24"/>
-          <text x="612" y="66" class="n-lbl">📄 Google Sheets</text>
-          <text x="612" y="84" class="n-sub">방 이름·부동산·보증금·월세·도보</text>
-          <text x="612" y="100" class="n-sub">구조·주차·최종점수·평가·사진URL</text>
-          <text x="612" y="114" class="n-sub">= 그대로 쓰는 데이터베이스</text></g>
-
-        <g><rect x="596" y="138" width="248" height="70" rx="10" fill="#3a2f10" stroke="#fbbf24"/>
-          <text x="612" y="158" class="n-lbl">🖼 Google Drive 폴더</text>
-          <text x="612" y="176" class="n-sub">현장 사진 업로드 → 자동 목록화</text>
-          <text x="612" y="192" class="n-sub">이미 쓴 사진은 “사용 중” 으로</text>
-          <text x="612" y="204" class="n-sub">중복 선택 차단</text></g>
-
-        <g><rect x="596" y="224" width="248" height="62" rx="10" fill="#2a1b28" stroke="#fb7185"/>
-          <text x="612" y="244" class="n-lbl">🔑 스크립트 속성</text>
-          <text x="612" y="262" class="n-sub">EDIT_PASSWORD 저장소</text>
-          <text x="612" y="278" class="n-sub">코드·깃 히스토리 어디에도 없음</text></g>
-
-        <g><rect x="596" y="302" width="248" height="62" rx="10" fill="#2b2517" stroke="#fbbf2477"/>
-          <text x="612" y="322" class="n-lbl">📚 정적 지식 탭 4종</text>
-          <text x="612" y="340" class="n-sub">계약·법적 안전장치 / 현장 점검</text>
-          <text x="612" y="356" class="n-sub">추천 특약 / 생활 편의 체크</text></g>
-
-        <g><rect x="596" y="380" width="248" height="46" rx="10" fill="#2b2517" stroke="#fbbf2455"/>
-          <text x="612" y="400" class="n-lbl">👨‍👩‍👧 시트 공유 = 협업</text>
-          <text x="612" y="418" class="n-sub">가족·친구가 같은 데이터를 함께 봄</text></g>
-
-        <g><rect x="596" y="442" width="248" height="38" rx="10" fill="#1d2a49" stroke="#5b9dff55"/>
-          <text x="612" y="466" class="n-sub">git push → Vercel 자동 재배포</text></g>
-
-        <!-- 프론트 내부 -->
-        <path d="M107 94 L107 106"  stroke="#7d8db5" stroke-width="1.6" marker-end="url(#ar)"/>
-        <path d="M107 172 L107 184" stroke="#7d8db5" stroke-width="1.6" marker-end="url(#ar)"/>
-        <path d="M107 256 L107 268" stroke="#7d8db5" stroke-width="1.6" marker-end="url(#ar)"/>
-        <path d="M107 408 L107 420" stroke="#7d8db5" stroke-width="1.6" marker-end="url(#ar)"/>
-
-        <!-- 모달 → verify -->
-        <path d="M198 139 C 224 139, 224 240, 250 240" stroke="#fb7185" stroke-width="1.8" fill="none" marker-end="url(#arR)"/>
-        <text x="203" y="205" class="e-lbl" fill="#fb7185">verify</text>
-        <!-- 폼 → doPost -->
-        <path d="M198 220 C 226 220, 224 314, 250 314" stroke="#34d399" stroke-width="1.8" fill="none" marker-end="url(#arG)"/>
-        <text x="203" y="290" class="e-lbl">POST 저장</text>
-        <!-- doGet → 대시보드 -->
-        <path d="M250 75 C 218 75, 216 377, 198 377" stroke="#34d399" stroke-width="1.6" fill="none" marker-end="url(#arG)" stroke-dasharray="5 4"/>
-        <text x="228" y="420" class="e-lbl" transform="rotate(-90 228 420)">GET 새로고침</text>
-
-        <!-- 가드 게이팅 -->
-        <path d="M398 196 L398 212" stroke="#fb7185" stroke-width="1.6" marker-end="url(#arR)"/>
-        <path d="M398 268 L398 284" stroke="#fb7185" stroke-width="1.6" marker-end="url(#arR)"/>
-
-        <!-- 백엔드 ↔ 데이터 -->
-        <path d="M546 75 L596 78" stroke="#fbbf24" stroke-width="1.8" fill="none" marker-end="url(#arY)"/>
-        <path d="M546 90 C 572 90, 572 168, 596 168" stroke="#fbbf24" stroke-width="1.5" fill="none" marker-end="url(#arY)" stroke-dasharray="4 3"/>
-        <path d="M546 314 C 576 314, 570 100, 596 100" stroke="#fbbf24" stroke-width="1.8" fill="none" marker-end="url(#arY)"/>
-        <path d="M546 152 L596 250" stroke="#fb7185" stroke-width="1.6" fill="none" marker-end="url(#arR)" stroke-dasharray="4 3"/>
-        <text x="556" y="40" class="e-lbl">읽기 / 쓰기</text>
-
-        <!-- 스텝 -->
-        <g><circle cx="28" cy="54" r="9" fill="#5b9dff"/><text x="28" y="58" text-anchor="middle" class="step">1</text></g>
-        <g><circle cx="28" cy="118" r="9" fill="#fb7185"/><text x="28" y="122" text-anchor="middle" class="step">2</text></g>
-        <g><circle cx="28" cy="196" r="9" fill="#5b9dff"/><text x="28" y="200" text-anchor="middle" class="step">3</text></g>
-        <g><circle cx="28" cy="280" r="9" fill="#5b9dff"/><text x="28" y="284" text-anchor="middle" class="step">4</text></g>
-        <g><circle cx="262" cy="132" r="9" fill="#fb7185"/><text x="262" y="136" text-anchor="middle" class="step">5</text></g>
-        <g><circle cx="608" cy="58" r="9" fill="#fbbf24"/><text x="608" y="62" text-anchor="middle" class="step">6</text></g>
+        <path d="M287 340 L682 340" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#y)"/>
+        <text x="300" y="334" class="ns">통과한 요청만 시트에 기록됩니다</text>
       </svg>
-    </section>
+    </div>
 
-    <!-- ===== 오른쪽: 에이전트 ===== -->
-    <section class="panel">
-      <div class="lane-title"><i class="dot" style="background:var(--d)"></i>에이전트 작업 흐름 <small>— 서브에이전트 · 스킬 · 실측 검증</small></div>
+    <div style="display:flex;flex-direction:column;gap:11px;min-height:0">
+      <div class="card rc">
+        <h3>🚫 왜 프론트엔드로는 안 되나</h3>
+        <p>난독화·Base64·해시로 바꿔도 소용없습니다. 브라우저가 실행해야 하는 코드는 사용자가 전부 읽을 수 있습니다.
+           더구나 초기 버전은 저장 요청에 비밀번호를 <b>아예 싣지 않아서</b>, 검사가 사실상 장식이었습니다.</p>
+      </div>
+      <div class="card bc">
+        <h3>✅ 두 겹으로 막습니다</h3>
+        <p><b>1차</b> — 모달의 <code>verify</code>: 잘못된 비밀번호로는 폼이 열리지 않습니다.<br>
+           <b>2차</b> — 저장·삭제 요청의 <code>isAuthorized()</code>: 개발자도구로 1차를 우회해도 여기서 걸립니다.
+           <b>진짜 방어선은 2차 하나</b>이고, 1차는 UX를 위한 편의입니다.</p>
+      </div>
+      <div class="limit" style="flex:1">
+        <h3>⚠️ 그래도 남는 한계</h3>
+        <ul>
+          <li><b>조회는 완전 공개</b> — URL을 아는 사람은 시트 내용을 봅니다</li>
+          <li><b>공용 비밀번호 하나</b> — 개인별 인증이 아닙니다</li>
+          <li>가족·친구끼리 쓰는 수준이며, 민감한 데이터에는 부적절합니다</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <svg viewBox="0 0 344 190" style="flex:0 0 190px;margin:2px 0 8px">
+<!-- ═══ 5. 에이전트 ═══ -->
+<section class="slide">
+  <div class="eyebrow">04 — Agent workflow</div>
+  <h2>서브에이전트와 스킬로 일하는 방식</h2>
+  <p class="lede">메인 에이전트가 요청을 분해하고, <b>서브에이전트</b>가 병렬로 조사하고, <b>스킬</b>이 정해진 절차를 대신합니다.
+     결과는 추측이 아니라 실제 요청을 보내 확인합니다.</p>
+
+  <div class="body" style="display:grid;grid-template-columns:492px 1fr;gap:14px;">
+    <div class="panel">
+      <h3><i class="dot" style="background:var(--d)"></i>역할 분담</h3>
+      <svg viewBox="0 0 452 332" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#c084fc"/></marker>
-          <marker id="apG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
+          <marker id="p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#c084fc"/></marker>
+          <marker id="pg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
         </defs>
+        <rect x="2" y="108" width="106" height="58" rx="10" fill="#241a3d" stroke="#c084fc"/>
+        <text x="55" y="132" text-anchor="middle" class="nl" style="font-size:11.5px">사용자 요청</text>
+        <text x="55" y="150" text-anchor="middle" class="ns" style="font-size:10px">“비번 숨기고 배포”</text>
 
-        <rect x="2" y="60" width="72" height="44" rx="9" fill="#241a3d" stroke="#c084fc"/>
-        <text x="38" y="78" text-anchor="middle" class="n-lbl" style="font-size:11px">사용자 요청</text>
-        <text x="38" y="93" text-anchor="middle" class="n-sub" style="font-size:9px">“비번 숨기고 배포”</text>
+        <rect x="140" y="100" width="116" height="74" rx="10" fill="#33265c" stroke="#c084fc" stroke-width="1.6"/>
+        <text x="198" y="124" text-anchor="middle" class="nl" style="font-size:11.5px">메인 에이전트</text>
+        <text x="198" y="142" text-anchor="middle" class="ns" style="font-size:10px">분해 · 구현 · 통합</text>
+        <text x="198" y="158" text-anchor="middle" class="ns" style="font-size:10px">최종 판단과 책임</text>
 
-        <rect x="94" y="54" width="80" height="56" rx="9" fill="#33265c" stroke="#c084fc"/>
-        <text x="134" y="74" text-anchor="middle" class="n-lbl" style="font-size:11px">메인 에이전트</text>
-        <text x="134" y="89" text-anchor="middle" class="n-sub" style="font-size:9px">분해 · 구현 · 통합</text>
-        <text x="134" y="102" text-anchor="middle" class="n-sub" style="font-size:9px">최종 판단</text>
+        <rect x="290" y="14" width="160" height="52" rx="9" fill="#1c2a49" stroke="#5b9dff99"/>
+        <text x="302" y="34" class="nl" style="font-size:10.5px">🔎 Explore</text>
+        <text x="302" y="51" class="ns" style="font-size:9.5px">레포 클론 · 구조 파악</text>
+        <text x="302" y="62" class="ns" style="font-size:9.5px">읽기 전용 탐색</text>
 
-        <rect x="198" y="2"  width="144" height="38" rx="8" fill="#1d2a49" stroke="#5b9dff99"/>
-        <text x="207" y="18" class="n-lbl" style="font-size:10px">🔎 Explore 서브에이전트</text>
-        <text x="207" y="32" class="n-sub" style="font-size:9px">레포 클론 · 구조 파악</text>
+        <rect x="290" y="84" width="160" height="52" rx="9" fill="#1c2a49" stroke="#5b9dff99"/>
+        <text x="302" y="104" class="nl" style="font-size:10.5px">🧭 Plan</text>
+        <text x="302" y="121" class="ns" style="font-size:9.5px">인증 설계 · 배점 검토</text>
+        <text x="302" y="132" class="ns" style="font-size:9.5px">트레이드오프 정리</text>
 
-        <rect x="198" y="46" width="144" height="38" rx="8" fill="#1d2a49" stroke="#5b9dff99"/>
-        <text x="207" y="62" class="n-lbl" style="font-size:10px">🧭 Plan 서브에이전트</text>
-        <text x="207" y="76" class="n-sub" style="font-size:9px">인증 설계 · 배점 검토</text>
+        <rect x="290" y="154" width="160" height="52" rx="9" fill="#1c2a49" stroke="#5b9dff99"/>
+        <text x="302" y="174" class="nl" style="font-size:10.5px">🛠 general-purpose</text>
+        <text x="302" y="191" class="ns" style="font-size:9.5px">히스토리 재작성 · 검증</text>
+        <text x="302" y="202" class="ns" style="font-size:9.5px">다단계 실행 작업</text>
 
-        <rect x="198" y="90" width="144" height="38" rx="8" fill="#1d2a49" stroke="#5b9dff99"/>
-        <text x="207" y="106" class="n-lbl" style="font-size:10px">🛠 general-purpose</text>
-        <text x="207" y="120" class="n-sub" style="font-size:9px">히스토리 재작성 · 검증</text>
+        <rect x="140" y="228" width="310" height="96" rx="10" fill="#102b23" stroke="#34d399"/>
+        <text x="154" y="250" class="nl" style="font-size:11px">🧩 스킬 (Skill) — 재사용 가능한 작업 절차서</text>
+        <text x="154" y="270" class="ns" style="font-size:10px">“이런 일은 이렇게 한다”를 문서로 굳혀둔 것.</text>
+        <text x="154" y="287" class="ns" style="font-size:10px">매번 새로 고민하지 않고 규격대로 처리합니다.</text>
+        <text x="154" y="307" class="ns" style="font-size:10px">artifact-design · dataviz(이 슬라이드) · agent-browser</text>
+        <text x="154" y="319" class="ns" style="font-size:10px">docx/pptx 보고서 · update-config …</text>
 
-        <rect x="94" y="134" width="248" height="52" rx="8" fill="#132b23" stroke="#34d399"/>
-        <text x="104" y="151" class="n-lbl" style="font-size:10px">🧩 스킬 (Skill) — 재사용 가능한 작업 절차서</text>
-        <text x="104" y="165" class="n-sub" style="font-size:9px">artifact-design · dataviz (이 슬라이드) · agent-browser</text>
-        <text x="104" y="178" class="n-sub" style="font-size:9px">docx/pptx 보고서 · update-config</text>
-
-        <path d="M74 82 L94 82" stroke="#c084fc" stroke-width="1.6" marker-end="url(#ap)"/>
-        <path d="M174 70 C 188 70, 186 21, 198 21" stroke="#c084fc" stroke-width="1.4" fill="none" marker-end="url(#ap)"/>
-        <path d="M174 82 L198 66" stroke="#c084fc" stroke-width="1.4" fill="none" marker-end="url(#ap)"/>
-        <path d="M174 94 C 188 94, 186 109, 198 109" stroke="#c084fc" stroke-width="1.4" fill="none" marker-end="url(#ap)"/>
-        <path d="M134 110 L134 134" stroke="#34d399" stroke-width="1.5" marker-end="url(#apG)"/>
+        <path d="M108 137 L140 137" stroke="#c084fc" stroke-width="1.7" marker-end="url(#p)"/>
+        <path d="M256 118 C 274 118, 272 40, 290 40" stroke="#c084fc" stroke-width="1.5" fill="none" marker-end="url(#p)"/>
+        <path d="M256 137 L290 110" stroke="#c084fc" stroke-width="1.5" fill="none" marker-end="url(#p)"/>
+        <path d="M256 156 C 274 156, 272 180, 290 180" stroke="#c084fc" stroke-width="1.5" fill="none" marker-end="url(#p)"/>
+        <text x="262" y="212" class="ne" style="font-size:9.5px">병렬 실행</text>
+        <path d="M198 174 L198 228" stroke="#34d399" stroke-width="1.6" marker-end="url(#pg)"/>
       </svg>
+    </div>
 
-      <ol class="flow">
-        <li><i class="num">1</i><div><b>요청 해석</b> — “하드코딩된 비밀번호를 감춰라”를 <i>클라이언트에는 비밀이 존재할 수 없다</i>는 제약으로 재정의</div></li>
+    <div class="panel">
+      <h3><i class="dot" style="background:var(--a)"></i>실제로 이렇게 흘러갔습니다</h3>
+      <ol class="steps">
+        <li><i class="num">1</i><div><b>요청 해석</b> — “하드코딩된 비밀번호를 감춰라”를 <i>클라이언트에 비밀은 존재할 수 없다</i>는 제약으로 재정의</div></li>
         <li><i class="num">2</i><div><b>병렬 조사</b> — <span class="tag">Explore</span> 가 레포 구조를, <span class="tag">Plan</span> 이 인증 설계를 동시에 수행</div></li>
-        <li><i class="num">3</i><div><b>스킬 호출</b> — <span class="tag s">스킬</span>은 “이럴 땐 이렇게”를 담은 절차서. 시각화·문서·브라우저 자동화를 규격대로 처리</div></li>
-        <li><i class="num">4</i><div><b>구현</b> — 검증을 서버로 이전 · <span class="tag r">filter-repo</span> 로 히스토리에서 비밀번호 제거 · 죽은 외부 이미지 의존 제거</div></li>
-        <li><i class="num">5</i><div><b>실측 검증</b> — 추측 대신 실제 배포본에 요청을 보내 응답 확인. <b>중첩된 doPost</b>를 이 단계에서 발견</div></li>
-        <li><i class="num">6</i><div><b>배포</b> — git push → Vercel 자동 반영. 결과가 어긋나면 <b>1번으로 되돌아가 재검증</b></div></li>
+        <li><i class="num">3</i><div><b>스킬 호출</b> — <span class="tag s">스킬</span>이 시각화·문서 작성·브라우저 자동화를 정해진 절차대로 처리</div></li>
+        <li><i class="num">4</i><div><b>구현</b> — 검증을 서버로 이전 · <span class="tag r">filter-repo</span> 로 깃 히스토리에서 비밀번호 제거 · 서비스 종료된 외부 이미지 의존 제거</div></li>
+        <li><i class="num">5</i><div><b>실측 검증</b> — 추측 대신 실제 배포본에 요청을 보내 응답 확인. <b>자기 자신 안에 중첩된 <code>doPost</code></b>를 이 단계에서 발견했습니다 — 함수가 아무것도 반환하지 못해 모든 쓰기가 무인증으로 통과하던 상태였습니다</div></li>
+        <li><i class="num">6</i><div><b>배포와 재검증</b> — git push → Vercel 자동 반영. 결과가 기대와 다르면 <b>1번으로 되돌아갑니다</b></div></li>
       </ol>
-    </section>
+      <div class="warn" style="margin-top:auto">
+        <h3>💡 이 과정에서 배운 것</h3>
+        <p>같은 증상(<code>Failed to fetch</code>)에 원인이 셋 겹쳐 있었습니다 — 중첩된 함수, 배포 액세스 권한,
+           갱신되지 않은 배포. <b>추측을 멈추고 실제 요청을 보내 응답을 읽는 것</b>만이 이를 갈라냈습니다.</p>
+      </div>
+    </div>
   </div>
+</section>
 
-  <div class="strip">
-    <div class="kpi"><div class="v">HTML 1개 + Code.gs</div><div class="k">빌드 도구 없이 Vercel 배포</div></div>
-    <div class="kpi"><div class="v">0 ~ 100점 자동 산정</div><div class="k">15개 항목 가점·감점 규칙</div></div>
-    <div class="kpi"><div class="v">서버측 인증 1곳</div><div class="k">isAuthorized( ) 가 모든 쓰기를 통제</div></div>
-    <div class="kpi"><div class="v">조회는 공개</div><div class="k">읽기 제한이 필요하면 추가 설계 필요</div></div>
+<!-- ═══ 6. 배포 ═══ -->
+<section class="slide">
+  <div class="eyebrow">05 — Ship it</div>
+  <h2>배포와 운영</h2>
+  <p class="lede">빌드 산출물이 없으니 배포는 파일을 올리는 일에 가깝습니다. 다만 백엔드에는 한 가지 함정이 있습니다.</p>
+
+  <div class="body" style="display:grid;grid-template-rows:auto 1fr;gap:13px;">
+    <div class="panel" style="flex:0 0 auto">
+      <h3><i class="dot" style="background:var(--b)"></i>두 개의 배포 경로 — 이 둘은 완전히 별개입니다</h3>
+      <svg viewBox="0 0 1120 152" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b9dff"/></marker>
+          <marker id="fb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/></marker>
+        </defs>
+        <text x="0" y="12" class="ns" fill="#5b9dff" style="font-weight:700">프론트엔드 — 자동</text>
+        <rect x="0" y="22" width="150" height="40" rx="9" fill="#1c2a49" stroke="#5b9dff99"/><text x="75" y="47" text-anchor="middle" class="nl" style="font-size:11px">index.html 수정</text>
+        <rect x="196" y="22" width="150" height="40" rx="9" fill="#1c2a49" stroke="#5b9dff99"/><text x="271" y="47" text-anchor="middle" class="nl" style="font-size:11px">git push</text>
+        <rect x="392" y="22" width="164" height="40" rx="9" fill="#213259" stroke="#5b9dff"/><text x="474" y="47" text-anchor="middle" class="nl" style="font-size:11px">Vercel 자동 재배포</text>
+        <rect x="602" y="22" width="150" height="40" rx="9" fill="#1c2a49" stroke="#5b9dff99"/><text x="677" y="47" text-anchor="middle" class="nl" style="font-size:11px">✅ 즉시 반영</text>
+        <path d="M150 42 L196 42" stroke="#5b9dff" stroke-width="1.8" marker-end="url(#f)"/>
+        <path d="M346 42 L392 42" stroke="#5b9dff" stroke-width="1.8" marker-end="url(#f)"/>
+        <path d="M556 42 L602 42" stroke="#5b9dff" stroke-width="1.8" marker-end="url(#f)"/>
+
+        <text x="0" y="100" class="ns" fill="#fbbf24" style="font-weight:700">백엔드 — 수동</text>
+        <rect x="0" y="110" width="150" height="40" rx="9" fill="#3a2f10" stroke="#fbbf2499"/><text x="75" y="135" text-anchor="middle" class="nl" style="font-size:11px">Code.gs 수정</text>
+        <rect x="196" y="110" width="150" height="40" rx="9" fill="#3a2f10" stroke="#fbbf2499"/><text x="271" y="135" text-anchor="middle" class="nl" style="font-size:11px">Ctrl+S 저장</text>
+        <rect x="392" y="110" width="164" height="40" rx="9" fill="#4a2f10" stroke="#fbbf24" stroke-width="1.7"/><text x="474" y="128" text-anchor="middle" class="nl" style="font-size:11px">배포 관리 → ✏️</text><text x="474" y="143" text-anchor="middle" class="ns" style="font-size:9.5px">버전 “새 버전” → 배포</text>
+        <rect x="602" y="110" width="150" height="40" rx="9" fill="#3a2f10" stroke="#fbbf2499"/><text x="677" y="135" text-anchor="middle" class="nl" style="font-size:11px">✅ 반영</text>
+        <path d="M150 130 L196 130" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#fb)"/>
+        <path d="M346 130 L392 130" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#fb)"/>
+        <path d="M556 130 L602 130" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#fb)"/>
+        <path d="M474 110 C 474 86, 800 92, 800 112" stroke="#fb7185" stroke-width="1.7" fill="none" stroke-dasharray="5 4"/>
+        <text x="812" y="106" class="ns" fill="#ffc2ce" style="font-size:10px">이 단계를 빼먹으면 저장은 됐는데</text>
+        <text x="812" y="122" class="ns" fill="#ffc2ce" style="font-size:10px">배포된 URL 은 옛 코드를 계속 실행합니다</text>
+        <text x="812" y="140" class="ns" fill="#ffc2ce" style="font-size:10px">→ “고쳤는데 왜 그대로지?”의 정체</text>
+      </svg>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;min-height:0">
+      <div class="card ac">
+        <h3>🚀 처음 배포하기</h3>
+        <p><b>1.</b> vercel.com/new 에서 레포 Import<br>
+           <b>2.</b> Framework Preset: <b>Other</b><br>
+           <b>3.</b> Deploy<br><br>
+           설정 파일도 빌드 명령도 필요 없습니다. 이후 <code>main</code> 에 푸시하면 자동으로 재배포됩니다.</p>
+      </div>
+      <div class="card bc">
+        <h3>⚙️ Apps Script 세팅</h3>
+        <p><b>1.</b> 시트 → 확장 프로그램 → Apps Script<br>
+           <b>2.</b> <code>apps-script-Code.gs</code> 붙여넣기<br>
+           <b>3.</b> 스크립트 속성에 <code>EDIT_PASSWORD</code> 추가<br>
+           <b>4.</b> 배포 → 웹 앱, 액세스 <b>모든 사용자</b><br>
+           <b>5.</b> 발급된 URL 을 <code>WEB_APP_URL</code> 에</p>
+      </div>
+      <div class="warn">
+        <h3>🧯 막히면 여기부터</h3>
+        <p><b>Failed to fetch</b> → 스크립트가 JSON 을 못 돌려준 상태. 오류 페이지에는 CORS 헤더가 없어 브라우저가 원인을 읽지 못합니다.<br><br>
+           <b>액세스 권한</b>이 “Google 계정이 있는 모든 사용자”면 익명 요청이 로그인으로 튕깁니다. <b>“모든 사용자”</b>여야 합니다.<br><br>
+           <b>재배포</b>를 했는지 다시 확인하세요.</p>
+      </div>
+    </div>
   </div>
+</section>
+
+<nav>
+  <div class="dots" id="dots"></div>
+  <a class="home" href="./">← 대시보드로</a>
+  <span class="nav-lbl" id="counter">1 / 6</span>
+  <button class="arrow" id="prev" aria-label="이전 슬라이드">←</button>
+  <button class="arrow" id="next" aria-label="다음 슬라이드">→</button>
+</nav>
 </div>
 
 <script>
-  const stage = document.getElementById('stage');
-  const fit = () => { stage.style.transform = `scale(${Math.min(innerWidth/1280, innerHeight/720)})`; };
-  addEventListener('resize', fit); fit();
+  const shell   = document.getElementById('shell');
+  const slides  = [...document.querySelectorAll('.slide')];
+  const dots    = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  let i = 0;
+
+  // 1280x720 무대를 화면에 맞춰 축소한다. 1배 이상으로 확대하지는 않는다.
+  // 뷰포트 크기를 아직 모르는 시점(0)에 배율이 0으로 굳어 화면이 사라지지 않도록 방어한다.
+  const fit = () => {
+    const w = innerWidth  || document.documentElement.clientWidth  || 1280;
+    const h = innerHeight || document.documentElement.clientHeight || 720;
+    const s = Math.min(w / 1320, h / 760, 1);
+    shell.style.transform = `scale(${s > 0.05 ? s : 1})`;
+  };
+  addEventListener('resize', fit);
+  addEventListener('load', fit);
+  fit();
+  requestAnimationFrame(fit);
+
+  slides.forEach((_, n) => {
+    const b = document.createElement('button');
+    b.className = 'pip';
+    b.setAttribute('aria-label', `${n + 1}번 슬라이드`);
+    b.onclick = () => go(n);
+    dots.appendChild(b);
+  });
+
+  function go(n, updateHash = true) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === i);
+      s.classList.toggle('prev', k < i);
+    });
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === slides.length - 1;
+    if (updateHash) history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  prevBtn.onclick = () => go(i - 1);
+  nextBtn.onclick = () => go(i + 1);
+
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(i + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key))             { e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home')                                    { go(0); }
+    else if (e.key === 'End')                                     { go(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    }
+  });
+
+  // 빈 곳을 클릭하면 다음 장으로. 링크·버튼 클릭은 방해하지 않는다.
+  addEventListener('click', e => {
+    if (e.target.closest('nav, a, button')) return;
+    go(i + 1);
+  });
+
+  // 모바일 스와이프
+  let x0 = null;
+  addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 46) go(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  }, { passive: true });
+
+  const start = parseInt(location.hash.slice(1), 10);
+  go(Number.isInteger(start) && start >= 1 ? start - 1 : 0, false);
 </script>
 </body>
 </html>
