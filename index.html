@@ -420,11 +420,220 @@
         .photo-gallery a { display: block; position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
         .photo-gallery img { width: 100%; height: 120px; object-fit: cover; display: block; }
 
-        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
-        .detail-row span.label { color: var(--text-muted); font-weight: 500; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 14px; gap: 12px; }
+        .detail-row span.label { color: var(--text-muted); font-weight: 500; white-space: nowrap; }
         .detail-row span.value { font-weight: 600; text-align: right; }
         .loading-spinner { text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1; }
         .triple-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+
+        /* ───────────────────────────────────────────────
+           📊 요약 바 — 지금 보이는 목록의 통계
+           ─────────────────────────────────────────────── */
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .summary-cell {
+            background: var(--container-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .summary-cell .s-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.02em; }
+        .summary-cell .s-value { font-size: 20px; font-weight: 800; color: var(--heading); line-height: 1.3; }
+        .summary-cell .s-sub { font-size: 11px; color: var(--text-muted); }
+        .summary-cell.best { background: var(--accent-soft); border-color: var(--accent); cursor: pointer; }
+        .summary-cell.best:hover { box-shadow: 0 4px 10px -4px rgba(149,117,205,0.6); }
+        .summary-cell.best .s-value { font-size: 15px; }
+        .status-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+        .status-chip {
+            border: 1px solid var(--border); background: #fff; border-radius: 20px;
+            padding: 2px 10px; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text-muted);
+        }
+        .status-chip.on { outline: 2px solid var(--accent); }
+        .status-chip.pass { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+        .status-chip.hold { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
+        .status-chip.fail { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+
+        /* 🔧 모바일용 필터 접기 버튼 — 데스크톱에서는 숨김 */
+        .filter-toggle { display: none; }
+
+        /* ⚖️ 비교 선택 체크박스 (카드 위 오버레이) */
+        .room-card { position: relative; }
+        .card-compare {
+            position: absolute; top: 10px; left: 10px; z-index: 3;
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(255,255,255,0.93); border: 1px solid var(--border);
+            border-radius: 20px; padding: 4px 10px 4px 7px;
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            cursor: pointer; user-select: none;
+        }
+        .card-compare input { width: 15px; height: 15px; cursor: pointer; margin: 0; }
+        .room-card.compare-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+
+        /* 📍 카드의 주소 한 줄 */
+        .room-card-addr {
+            font-size: 12px; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ▓ 카드·상세의 진행률 바 */
+        .progress-line { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); }
+        .progress-track { flex: 1; height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+        .progress-fill.done { background: var(--success-text); }
+
+        /* ⚖️ 하단 고정 비교 바 */
+        .compare-bar {
+            position: fixed; left: 50%; transform: translateX(-50%);
+            bottom: 20px; z-index: 900;
+            display: none; align-items: center; gap: 12px;
+            background: var(--heading); color: #fff;
+            padding: 10px 14px; border-radius: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.35);
+            font-size: 14px; font-weight: 600;
+        }
+        .compare-bar.active { display: flex; }
+        .compare-bar .btn { padding: 7px 14px; font-size: 13px; }
+        .compare-bar .btn-ghost { background: transparent; color: #e8e0f7; border: 1px solid rgba(255,255,255,0.4); }
+        .compare-bar .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+
+        /* ⚖️ 비교 표 */
+        .compare-wrap { overflow-x: auto; }
+        .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 420px; }
+        .compare-table th, .compare-table td {
+            border-bottom: 1px solid var(--border); padding: 9px 10px; text-align: center; vertical-align: middle;
+        }
+        .compare-table th.rowhead {
+            text-align: left; color: var(--text-muted); font-weight: 600; white-space: nowrap;
+            background: #faf8fd; position: sticky; left: 0; z-index: 2;
+        }
+        .compare-table tr.diff th.rowhead, .compare-table tr.diff td { background: #fffdf2; }
+        .compare-table tr.diff th.rowhead { box-shadow: inset 3px 0 0 var(--warning-text); }
+        .compare-table td.win { color: var(--success-text); font-weight: 800; }
+        .compare-table td.win::after { content: ' 👑'; font-size: 11px; }
+        .compare-head-img { width: 100%; height: 84px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 6px; }
+        .compare-head-name { font-size: 13px; font-weight: 700; color: var(--heading); word-break: break-all; }
+
+        /* 🧮 점수 산출 근거 */
+        .score-breakdown { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .score-chip {
+            font-size: 12px; font-weight: 600; border-radius: 20px; padding: 3px 10px;
+            border: 1px solid var(--border); background: #fff; color: var(--text-muted);
+        }
+        .score-chip.plus { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+        .score-chip.minus { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+        .score-chip.base { background: var(--accent-soft); color: var(--accent-hover); border-color: var(--accent); }
+        .score-note { font-size: 12px; color: var(--warning-text); background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: 6px; padding: 6px 10px; margin-top: 8px; }
+
+        /* ✅ 방별 계약 진행 체크리스트 */
+        .checklist-head {
+            display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+            background: #faf8fd; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 18px;
+        }
+        .checklist-head select { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fff; flex: 1; min-width: 180px; }
+        .check-group { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+        .check-group > h3 {
+            margin: 0; padding: 12px 16px; font-size: 15px; background: #faf8fd;
+            color: var(--heading); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        }
+        .check-group > h3 .grp-count { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .check-item { display: flex; gap: 10px; padding: 11px 16px; border-bottom: 1px dashed var(--border); align-items: flex-start; }
+        .check-item:last-child { border-bottom: none; }
+        .check-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; cursor: pointer; flex: none; }
+        .check-item.checked .ci-label { color: var(--text-muted); text-decoration: line-through; }
+        .ci-label { font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer; }
+        .ci-desc { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+        .checklist-disabled { opacity: 0.6; }
+
+        /* 📸 현장 사진 업로드 */
+        .upload-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+        .upload-status { font-size: 12px; color: var(--text-muted); }
+        .photo-picker-item.uploaded { border-color: var(--success-text); }
+        .photo-picker-item .new-badge {
+            position: absolute; bottom: 6px; left: 6px; background: var(--success-text); color: #fff;
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+        }
+
+        /* 🗺️ 지도 링크 */
+        .map-links { display: flex; gap: 6px; flex-wrap: wrap; }
+        .map-link {
+            font-size: 12px; font-weight: 700; text-decoration: none;
+            border: 1px solid var(--accent); color: var(--accent-hover); background: var(--accent-soft);
+            border-radius: 20px; padding: 3px 10px;
+        }
+        .map-link:hover { background: var(--accent); color: #fff; }
+
+        /* ───────────────────────────────────────────────
+           📱 모바일 (현장에서 폰으로 쓰는 화면)
+           ─────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            h1 { font-size: 19px; }
+            .header-subtitle { font-size: 12px; }
+            header { align-items: stretch; gap: 10px; margin-bottom: 18px; }
+            header > div:last-child { display: flex; }
+            header > div:last-child > * {
+                flex: 1; justify-content: center; text-align: center;
+                white-space: nowrap; padding: 10px 8px; font-size: 13.5px;
+            }
+
+            .tabs { gap: 4px; -webkit-overflow-scrolling: touch; }
+            .tab-btn { padding: 10px 12px; font-size: 13.5px; }
+            .tab-content { padding: 14px; border-radius: 10px; }
+
+            .action-bar { gap: 8px; }
+            .action-bar .status-info { font-size: 12px; flex: 1 1 100%; }
+
+            /* 필터는 기본으로 접어둔다 — 카드가 먼저 보여야 한다 */
+            .filter-toggle { display: flex; width: 100%; justify-content: center; margin-bottom: 10px; }
+            .filter-bar { padding: 12px; margin-bottom: 14px; }
+            .filter-bar.collapsed { display: none; }
+            .filter-row > input, .filter-row > select { min-width: 100%; }
+            .filter-field { min-width: calc(50% - 5px); font-size: 12px; }
+
+            .summary-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+            .summary-cell { padding: 8px 10px; }
+            .summary-cell .s-value { font-size: 17px; }
+
+            .room-card-grid { grid-template-columns: 1fr; gap: 14px; }
+            .room-card-thumb { height: 180px; }
+
+            /* 모달은 전체 화면으로 — 작은 카드 안에서 스크롤하지 않게 */
+            .modal-overlay { padding: 0; align-items: flex-start; }
+            .modal-card { max-width: 100%; max-height: 100%; height: 100%; border-radius: 0; padding: 0 16px; }
+            #detailContent, #compareModal .compare-wrap { padding-bottom: 24px; }
+            .modal-header { padding-top: 14px; padding-bottom: 12px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+            .modal-header .btn { padding: 6px 10px !important; font-size: 12px !important; }
+
+            .form-grid { grid-template-columns: 1fr; gap: 10px; }
+            .form-group.full { grid-column: span 1; }
+            .form-group input, .form-group select, .form-group textarea { font-size: 16px; }  /* iOS 자동 확대 방지 */
+            .triple-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px; }
+            .triple-grid select { font-size: 13px; padding: 6px 4px; }
+            .photo-picker-grid { grid-template-columns: 1fr 1fr; max-height: 260px; }
+            .photo-picker-item { height: 120px; }
+
+            /* 저장 버튼을 모달 하단에 고정 */
+            .form-actions {
+                position: sticky; bottom: 0; background: #fff;
+                margin: 0 -16px; padding: 12px 16px;
+                border-top: 1px solid var(--border); display: flex; gap: 8px;
+            }
+            .form-actions .btn { flex: 1; justify-content: center; }
+
+            .compare-bar { bottom: 12px; width: calc(100% - 24px); justify-content: space-between; border-radius: 14px; }
+            .checklist-head { padding: 12px; }
+        }
+
+        @media (max-width: 400px) {
+            .filter-field { min-width: 100%; }
+            .summary-bar { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -442,11 +651,8 @@
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('dashboard')">📋 구경한 방 목록</button>
-        <button class="tab-btn" onclick="switchTab('legal')">🚨 계약 전 필수 안전장치</button>
-        <button class="tab-btn" onclick="switchTab('inspection')">🔍 현장 점검 노하우</button>
-        <button class="tab-btn" onclick="switchTab('terms')">📝 추천 특약사항</button>
-        <button class="tab-btn" onclick="switchTab('convenience')">🌿 생활 편의 & 안전</button>
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">📋 구경한 방 목록</button>
+        <button class="tab-btn" onclick="switchTab('checklist', this)">✅ 방별 계약 진행 체크리스트</button>
     </div>
 
     <div id="dashboard" class="tab-content active">
@@ -455,10 +661,13 @@
             <button class="btn btn-outline" onclick="fetchRoomData()">🔄 데이터 새로고침</button>
         </div>
 
+        <!-- 📱 모바일에서는 필터를 접어두고, 필요할 때만 편다 -->
+        <button class="btn btn-outline filter-toggle" type="button" id="filterToggle" onclick="toggleFilterBar()">🔍 검색 · 필터 열기</button>
+
         <!-- 🔍 검색 및 필터 영역 (카드에 표시되는 모든 컬럼 필터) -->
-        <div class="filter-bar">
+        <div class="filter-bar" id="filterBar">
             <div class="filter-row">
-                <input type="text" id="searchInput" placeholder="🔍 방 이름 검색..." oninput="renderRoomCards()">
+                <input type="text" id="searchInput" placeholder="🔍 방 이름 · 주소 · 부동산 검색..." oninput="renderRoomCards()">
                 <select id="agencyFilter" onchange="renderRoomCards()">
                     <option value="">🏢 부동산 전체</option>
                 </select>
@@ -478,9 +687,23 @@
             <div class="filter-row">
                 <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
                 <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
+                <label class="filter-field">↕️ 정렬
+                    <select id="sortBy" onchange="renderRoomCards()" style="border:none; background:transparent; font-weight:700; color:var(--accent-hover); flex:1; min-width:0;">
+                        <option value="scoreDesc">점수 높은 순</option>
+                        <option value="rentAsc">월세 싼 순</option>
+                        <option value="depositAsc">보증금 낮은 순</option>
+                        <option value="walkAsc">도보 가까운 순</option>
+                        <option value="visitDesc">최근 방문 순</option>
+                        <option value="progressDesc">계약 진행률 순</option>
+                        <option value="sheet">시트 입력 순</option>
+                    </select>
+                </label>
                 <button class="btn btn-outline" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
             </div>
         </div>
+
+        <!-- 📊 지금 보이는 목록의 요약 -->
+        <div class="summary-bar" id="summaryBar"></div>
 
         <!-- 🏠 카드 그리드 컨테이너 -->
         <div class="room-card-grid" id="roomCardContainer">
@@ -488,75 +711,52 @@
         </div>
     </div>
 
-    <!-- 법적 체크 탭 등 기타 내용 -->
-    <div id="legal" class="tab-content">
-        <div class="callout danger">
-            <h3>[필수로 확인하세요] 계약 & 법적 안전장치</h3>
-            <p>보증금을 안전하게 지키고 위법 건축물로 인한 피해를 막기 위해 계약 전~잔금 지급 시 무조건 확인해야 하는 필수 서류 및 체크 항목입니다.</p>
-        </div>
-        <ul>
-            <li><strong>등기부등본 (갑구/을구)</strong>
-                <ul>
-                    <li><strong>갑구:</strong> 실제 소유자와 임대인 신분증 일치 여부 확인 (신탁 등기 여부 필히 확인)</li>
-                    <li><strong>을구:</strong> 근저당권(대출) 금액 확인. (근저당 설정액 + 선순위 보증금 합계 &lt; 매매가의 60~70% 수준이어야 안전)</li>
-                </ul>
-            </li>
-            <li><strong>건축물대장:</strong> 위반건축물 여부 확인. 위반건축물일 경우 전입신고 불가 및 대출 제한 발생.</li>
-            <li><strong>임대인 국세·지방세 납세증명서:</strong> 집주인의 세금 체납 여부 확인.</li>
-            <li><strong>전입신고 & 확정일자 가능 여부:</strong> 대항력 확보를 위해 잔금 당일 전입신고 및 확정일자 부여.</li>
-            <li><strong>임대인 신분증 & 계좌 일치:</strong> 송금 계좌가 등기부등본상 소유자명의 계좌인지 확인.</li>
-        </ul>
-    </div>
-
-    <div id="inspection" class="tab-content">
-        <h2>🔍 현장 점검 노하우</h2>
-        <details open>
-            <summary>1. 방음 확인 방법</summary>
-            <div class="content">
-                <ul>
-                    <li><strong>벽면 두드려보기:</strong> 묵직하면 콘크리트(우수), 비어있는 소리면 석고보드 가벽(소음 큼).</li>
-                    <li><strong>샷시(창문) 확인:</strong> 창문을 닫았을 때 외부 차량/길거리 소음 차단율 체크.</li>
-                    <li><strong>배관 소음:</strong> 화장실 변기 물을 내려보고 물 빠지는 소리가 울리는지 확인.</li>
-                </ul>
-            </div>
-        </details>
-        <details>
-            <summary>2. 냄새 · 벌레 · 누수 · 하자 점검법</summary>
-            <div class="content">
-                <ul>
-                    <li><strong>벌레 흔적:</strong> 싱크대 하부장 내부, 걸레받이 틈새 까만 점(분변) 및 약 설치 흔적 확인.</li>
-                    <li><strong>누수 및 곰팡이:</strong> 창문 틀 주변, 천장 모서리, 옷장 안쪽 도배지 얼룩 확인.</li>
-                    <li><strong>수압 및 배수:</strong> 세면대 물을 튼 상태에서 변기 물을 함께 내려 수압 변화 확인.</li>
-                </ul>
-            </div>
-        </details>
-    </div>
-
-    <div id="terms" class="tab-content">
+    <!-- ✅ 지식 4종을 '방별로 체크되는' 진행 체크리스트로 -->
+    <div id="checklist" class="tab-content">
         <div class="callout info">
-            <h3>📝 추천 계약 특약사항</h3>
-            <p>계약서에 아래 내용을 특약으로 넣어두면 분쟁을 예방할 수 있습니다.</p>
+            <h3>✅ 방별 계약 진행 체크리스트</h3>
+            <p>위에서 본 항목들을 <strong>방마다 따로</strong> 체크해 둘 수 있습니다. 체크 상태는 구글 시트의
+               <code>진행체크</code> 열에 저장되므로 폰에서 체크하고 PC에서 이어볼 수 있습니다.
+               방을 고르지 않으면 읽기 전용 가이드로만 보입니다.</p>
         </div>
-        <ol style="line-height: 1.8;">
-            <li><strong>권리 관계 유지:</strong> "임대인은 잔금 지급일 다음 날까지 현재의 등기부등본상 권리 관계를 유지해야 하며, 위반 시 계약 무효 및 계약금 전액 즉시 반환."</li>
-            <li><strong>하자 보수 의무:</strong> "입주 전 발생한 하자(도배 상태, 곰팡이, 누수 등)는 임대인이 입주 전까지 완료하기로 한다."</li>
-            <li><strong>옵션 수리 기준:</strong> "기본 옵션 가전 및 난방 시설의 노후 고장은 임대인 비용으로 수리/교체한다."</li>
-            <li><strong>대출/보증보험 실패 시:</strong> "임대인 또는 건물 하자로 인해 전세자금대출/보증보험 가입 불가 시 계약금 전액 반환."</li>
-        </ol>
-    </div>
 
-    <div id="convenience" class="tab-content">
-        <div class="callout success">
-            <h3>🌿 생활 편의 & 안전 현장 체크리스트</h3>
-            <p>삶의 질을 좌우하는 입지 및 편의 요소들입니다.</p>
+        <div class="checklist-head">
+            <select id="checklistRoom" onchange="onChecklistRoomChange()">
+                <option value="">— 방을 선택하세요 (가이드만 보기) —</option>
+            </select>
+            <div style="flex: 1 1 200px; min-width: 180px;">
+                <div class="progress-line">
+                    <span id="checklistCount" style="font-weight:700; color:var(--heading);">0 / 0</span>
+                    <span class="progress-track"><span class="progress-fill" id="checklistFill" style="width:0%"></span></span>
+                    <span id="checklistPct" style="font-weight:700;">0%</span>
+                </div>
+            </div>
+            <button class="btn" type="button" id="checklistSaveBtn" onclick="saveChecklist()" disabled>💾 진행 상황 저장</button>
         </div>
-        <ul>
-            <li><strong>🚮 쓰레기 · 분리수거장:</strong> 건물 내 분리수거장 관리 상태, 배출 장소 확인.</li>
-            <li><strong>🏔️ 출퇴근길 경사도:</strong> 도보 시간 외 실제 경사(언덕길) 체크.</li>
-            <li><strong>☀️ 채광 시간:</strong> 앞 건물 높이나 거리에 따른 실제 채광 시간 체크.</li>
-            <li><strong>🌐 인터넷 환경:</strong> 기본 인터넷 선 유무 및 타공 가능 여부.</li>
-            <li><strong>📦 택배 보관:</strong> 비를 맞지 않고 안전하게 보관할 공간 유무.</li>
-        </ul>
+
+        <div id="checklistBody"></div>
+    </div>
+</div>
+
+<!-- ⚖️ 선택한 방을 나란히 비교 -->
+<div class="compare-bar" id="compareBar">
+    <span id="compareCount">0개 선택</span>
+    <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost" type="button" onclick="clearCompare()">해제</button>
+        <button class="btn" type="button" onclick="openCompareModal()">⚖️ 나란히 비교</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="compareModal">
+    <div class="modal-card" style="max-width: 960px;">
+        <div class="modal-header">
+            <h2 style="margin:0; font-size:20px; color:var(--heading);">⚖️ 방 비교</h2>
+            <button class="modal-close" onclick="closeCompareModal()">&times;</button>
+        </div>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+            노란 배경 = 방마다 값이 다른 항목 · 👑 = 그 항목에서 가장 유리한 방
+        </div>
+        <div class="compare-wrap"><table class="compare-table" id="compareTable"></table></div>
     </div>
 </div>
 
@@ -569,12 +769,16 @@
         <form id="roomForm" onsubmit="submitRoomForm(event)">
             <input type="hidden" id="editRowIndex" value="">
 
-            <div class="score-box">
-                <div>
-                    <strong>📊 점수 계산기 (자동 산출)</strong>
-                    <div style="font-size: 12px; color: var(--text-muted);">입력 및 선택 항목에 따라 실시간 반영됩니다.</div>
+            <div class="score-box" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <div>
+                        <strong>📊 점수 계산기 (자동 산출)</strong>
+                        <div style="font-size: 12px; color: var(--text-muted);">기본 50점에서 아래 항목이 더해지고 빠집니다.</div>
+                    </div>
+                    <div class="score-val" id="calculatedScoreVal">50점</div>
                 </div>
-                <div class="score-val" id="calculatedScoreVal">50점</div>
+                <!-- 🧮 왜 이 점수인지 그 자리에서 보여준다 -->
+                <div class="score-breakdown" id="formScoreBreakdown"></div>
             </div>
 
             <div class="form-grid">
@@ -600,6 +804,15 @@
                         <option value="보류">보류</option>
                         <option value="탈락">탈락</option>
                     </select>
+                </div>
+
+                <!-- 📍 주소: 지도 링크와 검색의 기준이 된다 -->
+                <div class="form-group full">
+                    <label>📍 주소 / 위치</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="addAddress" placeholder="예: 창원시 성산구 상남동 12-3" style="flex:1;">
+                        <button type="button" class="btn btn-outline" style="white-space:nowrap;" onclick="openMapForInput()">🗺️ 지도 확인</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -753,8 +966,14 @@
 
                 <div class="form-group full">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label style="margin:0;">📷 구글 드라이브 사진 선택</label>
+                        <label style="margin:0;">📷 사진</label>
                         <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 12px;" onclick="fetchDrivePhotos()">🔄 사진 새로고침</button>
+                    </div>
+                    <!-- 📸 현장에서 찍은 사진을 그 자리에서 드라이브로 올린다 -->
+                    <div class="upload-row">
+                        <input type="file" id="photoUploadInput" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(event)">
+                        <button type="button" class="btn" onclick="document.getElementById('photoUploadInput').click()">📸 사진 촬영 · 업로드</button>
+                        <span class="upload-status" id="uploadStatus">폰에서는 카메라로 바로 찍어 올릴 수 있습니다. (자동으로 긴 변 1600px로 줄여 업로드)</span>
                     </div>
                     <div id="drivePhotoPicker" class="photo-picker-grid">
                         <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 15px;">사진을 불러오는 중...</div>
@@ -770,7 +989,7 @@
                     <textarea id="addMemo" placeholder="방음 상태, 주변 환경, 기타 참고사항 메모"></textarea>
                 </div>
             </div>
-            <div style="text-align: right; margin-top: 15px;">
+            <div class="form-actions" style="text-align: right; margin-top: 15px; justify-content: flex-end;">
                 <button type="button" class="btn btn-outline" onclick="closeFormModal()">취소</button>
                 <button type="submit" class="btn" id="submitBtn">구글 시트에 저장하기</button>
             </div>
@@ -936,6 +1155,7 @@
     let selectedPhotoUrls = [];
     let usedPhotoUrls = new Set();
     let currentEditModalIndex = null;
+    let lastVisibleOrder = [];   // 화면에 보이는 카드 순서(원본 인덱스) — 상세 ◀▶ 이동에 쓴다
 
     window.addEventListener('DOMContentLoaded', () => {
         // 💡 로컬 시간 기준으로 오늘 날짜(YYYY-MM-DD) 설정
@@ -944,16 +1164,48 @@
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         document.getElementById('addVisitDate').value = `${year}-${month}-${day}`;
-        
+
+        // 📱 좁은 화면에서는 필터를 접은 채로 시작 — 카드가 먼저 보여야 한다
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            document.getElementById('filterBar').classList.add('collapsed');
+        }
+
+        renderChecklist();
         fetchRoomData();
     });
 
-    function switchTab(tabId) {
+    // ⌨️ ESC 로 닫고, 상세에서는 ←→ 로 방을 넘긴다
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('passwordModal').classList.contains('active')) { cancelPassword(); return; }
+            if (document.getElementById('compareModal').classList.contains('active')) { closeCompareModal(); return; }
+            if (document.getElementById('formModal').classList.contains('active')) { closeFormModal(); return; }
+            if (document.getElementById('detailModal').classList.contains('active')) { closeDetailModal(); return; }
+        }
+        if (!document.getElementById('detailModal').classList.contains('active')) return;
+        if (e.key === 'ArrowLeft') document.getElementById('prevRoomBtn').click();
+        if (e.key === 'ArrowRight') document.getElementById('nextRoomBtn').click();
+    });
+
+    function switchTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
+
         document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        const target = btn || (window.event && window.event.currentTarget);
+        if (target && target.classList) target.classList.add('active');
+        // 비교 바는 방 목록에서만 의미가 있다
+        document.getElementById('compareBar').classList.toggle('active', tabId === 'dashboard' && compareSelection.size > 0);
+        if (tabId === 'checklist') renderChecklist();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 📱 모바일에서 필터 접기/펴기
+    function toggleFilterBar() {
+        const bar = document.getElementById('filterBar');
+        const btn = document.getElementById('filterToggle');
+        const collapsed = bar.classList.toggle('collapsed');
+        btn.innerText = collapsed ? '🔍 검색 · 필터 열기' : '🔼 검색 · 필터 닫기';
     }
 
     function toggleParkingCostInput() {
@@ -1004,44 +1256,101 @@
         return '모름';
     }
 
+    // 사용자가 입력한 문자열이 그대로 HTML 로 들어가지 않도록 한 곳에서 막는다.
+    function esc(v) {
+        if (v === undefined || v === null) return '';
+        return String(v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 🧮 배점표를 한 곳에 모은다.
+    //    입력 폼과 이미 저장된 방이 "같은 표"를 보고 점수를 내므로,
+    //    배점을 바꾸면 과거 방의 점수 근거도 같은 기준으로 다시 보인다.
+    //    키는 구글 시트의 열 이름과 일치시킨다.
+    // ─────────────────────────────────────────────────────────────
+    const SCORE_BASE = 50;
+    const SCORING_RULES = [
+        { key: '방향',       label: '☀️ 방향',      points: { '남향': 10, '동향': 7, '서향': 5, '북향': 2 } },
+        { key: '채광',       label: '🌤️ 채광',      points: { '좋음': 10, '약간 가림': 5, '완전 가림': 0 } },
+        { key: '수압',       label: '🚰 수압',      points: { '좋음': 10, '보통': 5, '나쁨': 0 } },
+        { key: '콘센트',     label: '🔌 콘센트',    points: { '5개 이상': 5, '3~4개': 3, '1~2개': 0 } },
+        // 시트에는 '유료 가능 (3만원)' 처럼 저장되므로 부분 일치로 찾는다.
+        { key: '주차',       label: '🚗 주차',      points: { '무료 가능': 8, '유료 가능': 4, '불가능': 0 }, partial: true },
+        { key: '엘리베이터', label: '🛗 엘리베이터', points: { '있음': 5 }, yn: true },
+        { key: '중문',       label: '🚪 중문',      points: { '있음': 5 }, yn: true },
+        { key: '공동현관비번', label: '🔒 공동현관',  points: { '있음': 5 }, yn: true },
+        { key: '곰팡이',     label: '🍄 곰팡이',    points: { '있음': -10 }, yn: true },
+        { key: '누수',       label: '💧 누수',      points: { '있음': -10 }, yn: true },
+        { key: '벌레',       label: '🪳 벌레',      points: { '있음': -10 }, yn: true }
+    ];
+    const OPTION_POINT = 1;   // 포함 옵션 1개당
+
+    function rulePoints(rule, rawValue) {
+        const val = rule.yn ? parseYNValue(rawValue) : String(rawValue || '').trim();
+        if (!val) return { delta: 0, shown: '' };
+        if (rule.partial) {
+            const hit = Object.keys(rule.points).find(k => val.indexOf(k) === 0 || val.indexOf(k) > -1);
+            return hit ? { delta: rule.points[hit], shown: hit } : { delta: 0, shown: val };
+        }
+        return { delta: rule.points[val] || 0, shown: val };
+    }
+
+    // 방 한 채의 값(시트 열 이름 기준 객체)으로 점수와 근거를 함께 만든다.
+    function scoreBreakdown(values) {
+        const items = [];
+        let raw = SCORE_BASE;
+
+        SCORING_RULES.forEach(rule => {
+            const { delta, shown } = rulePoints(rule, values[rule.key]);
+            if (delta !== 0) {
+                raw += delta;
+                items.push({ label: `${rule.label} ${shown}`, delta: delta });
+            }
+        });
+
+        const optCount = String(values['옵션'] || '').split(',').map(s => s.trim()).filter(Boolean).length;
+        if (optCount > 0) {
+            raw += optCount * OPTION_POINT;
+            items.push({ label: `🛋️ 옵션 ${optCount}개`, delta: optCount * OPTION_POINT });
+        }
+
+        const total = Math.max(0, Math.min(100, raw));
+        return { total: total, items: items, clamped: raw !== total, raw: raw };
+    }
+
+    function renderBreakdownChips(bd) {
+        const chips = [`<span class="score-chip base">기본 ${SCORE_BASE}</span>`];
+        bd.items.forEach(it => {
+            const cls = it.delta > 0 ? 'plus' : 'minus';
+            const sign = it.delta > 0 ? '+' : '';
+            chips.push(`<span class="score-chip ${cls}">${esc(it.label)} ${sign}${it.delta}</span>`);
+        });
+        if (bd.clamped) chips.push(`<span class="score-chip">합계 ${bd.raw} → 0~100 보정</span>`);
+        return chips.join('');
+    }
+
+    // 입력 폼의 현재 상태를 시트 열 이름 기준 객체로 바꾼다 (배점표 공유용)
+    function formValues() {
+        const v = id => document.getElementById(id).value;
+        const opts = [];
+        document.querySelectorAll('input[name="optionCheck"]:checked').forEach(cb => opts.push(cb.value));
+        return {
+            '방향': v('addDirection'), '채광': v('addLighting'),
+            '수압': v('addWaterPressure'), '콘센트': v('addOutlets'),
+            '주차': v('addParkingType'),
+            '엘리베이터': v('addElevator'), '중문': v('addMiddleDoor'), '공동현관비번': v('addBuildingLock'),
+            '곰팡이': v('addMould'), '누수': v('addLeak'), '벌레': v('addBugs'),
+            '옵션': opts.join(', ')
+        };
+    }
+
     function calculateScore() {
-        let score = 50;
-        const dir = document.getElementById('addDirection').value;
-        if (dir === '남향') score += 10;
-        else if (dir === '동향') score += 7;
-        else if (dir === '서향') score += 5;
-        else if (dir === '북향') score += 2;
-
-        const light = document.getElementById('addLighting').value;
-        if (light === '좋음') score += 10;
-        else if (light === '약간 가림') score += 5;
-
-        const water = document.getElementById('addWaterPressure').value;
-        if (water === '좋음') score += 10;
-        else if (water === '보통') score += 5;
-
-        const outlets = document.getElementById('addOutlets').value;
-        if (outlets === '5개 이상') score += 5;
-        else if (outlets === '3~4개') score += 3;
-
-        const parking = document.getElementById('addParkingType').value;
-        if (parking === '무료 가능') score += 8;
-        else if (parking === '유료 가능') score += 4;
-
-        if (document.getElementById('addElevator').value === '있음') score += 5;
-        if (document.getElementById('addMiddleDoor').value === '있음') score += 5;
-        if (document.getElementById('addBuildingLock').value === '있음') score += 5;
-
-        if (document.getElementById('addMould').value === '있음') score -= 10;
-        if (document.getElementById('addLeak').value === '있음') score -= 10;
-        if (document.getElementById('addBugs').value === '있음') score -= 10;
-
-        const optCount = document.querySelectorAll('input[name="optionCheck"]:checked').length;
-        score += optCount;
-
-        score = Math.max(0, Math.min(100, score));
-        document.getElementById('calculatedScoreVal').innerText = `${score}점`;
-        return score;
+        const bd = scoreBreakdown(formValues());
+        document.getElementById('calculatedScoreVal').innerText = `${bd.total}점`;
+        document.getElementById('formScoreBreakdown').innerHTML = renderBreakdownChips(bd);
+        return bd.total;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1118,7 +1427,12 @@
                         'notjson');
                 }
                 roomDataStore = data;
+                // 인덱스가 밀릴 수 있으므로 비교 선택은 새로고침 때 비운다
+                compareSelection.clear();
+                updateCompareBar();
                 updateAgencyFilterOptions();
+                updateChecklistRoomOptions();
+                if (!checklistDirty) { checklistDraft = null; renderChecklist(); }
                 renderRoomCards();
                 const now = new Date().toLocaleTimeString();
                 infoEl.innerText = `✅ 최근 동기화: ${now} (총 ${data.length}개 방)`;
@@ -1161,6 +1475,25 @@
         return isNaN(n) ? null : n;
     }
 
+    // ↕️ 정렬 기준. null 을 항상 뒤로 보내 "값 없음"이 목록 맨 위를 차지하지 않게 한다.
+    const SORTERS = {
+        scoreDesc:    (a, b) => cmpNum(toNum(a.room['최종점수']), toNum(b.room['최종점수'])),
+        rentAsc:      (a, b) => cmpNum(toNum(a.room['월세+관리비(만원)']), toNum(b.room['월세+관리비(만원)']), true),
+        depositAsc:   (a, b) => cmpNum(toNum(a.room['보증금(만원)']), toNum(b.room['보증금(만원)']), true),
+        walkAsc:      (a, b) => cmpNum(toNum(a.room['도보거리(분)']), toNum(b.room['도보거리(분)']), true),
+        visitDesc:    (a, b) => String(formatDateOnly(b.room['방문일자'])).localeCompare(String(formatDateOnly(a.room['방문일자']))),
+        progressDesc: (a, b) => progressOf(b.room).pct - progressOf(a.room).pct,
+        sheet:        (a, b) => a.index - b.index
+    };
+
+    // asc=true 면 작은 값이 앞. 어느 쪽이든 null 은 맨 뒤.
+    function cmpNum(x, y, asc) {
+        if (x === null && y === null) return 0;
+        if (x === null) return 1;
+        if (y === null) return -1;
+        return asc ? x - y : y - x;
+    }
+
     function renderRoomCards() {
         const container = document.getElementById('roomCardContainer');
         container.innerHTML = '';
@@ -1177,11 +1510,13 @@
         const dateFrom = getVal('dateFrom');
         const dateTo = getVal('dateTo');
 
-        let renderCount = 0;
+        // 1) 거르기 — 통과한 방만 원래 인덱스와 함께 모은다
+        const visible = [];
 
         roomDataStore.forEach((room, originalIndex) => {
             const roomName = (room['방 이름'] || '').toLowerCase();
             const roomAgency = (room['부동산 이름'] || '').trim();
+            const roomAddr = (room['주소'] || '').toLowerCase();
             const roomStatus = room['평가'] || '';
 
             const dep = toNum(room['보증금(만원)']);
@@ -1190,8 +1525,11 @@
             const scoreNum = toNum(room['최종점수']);
             const visit = formatDateOnly(room['방문일자']); // YYYY-MM-DD 또는 '-'
 
-            // 텍스트 / 드롭다운 필터
-            if (searchText && !roomName.includes(searchText)) return;
+            // 텍스트 / 드롭다운 필터 (이름·주소·부동산 어디든 걸리면 통과)
+            if (searchText &&
+                !roomName.includes(searchText) &&
+                !roomAddr.includes(searchText) &&
+                !roomAgency.toLowerCase().includes(searchText)) return;
             if (selectedAgency && roomAgency !== selectedAgency) return;
             if (statusVal && roomStatus !== statusVal) return;
 
@@ -1205,7 +1543,21 @@
             if (dateFrom && (visit === '-' || visit < dateFrom)) return;
             if (dateTo && (visit === '-' || visit > dateTo)) return;
 
-            renderCount++;
+            visible.push({ room: room, index: originalIndex });
+        });
+
+        // 2) 정렬
+        const sorter = SORTERS[getVal('sortBy')] || SORTERS.scoreDesc;
+        visible.sort(sorter);
+
+        // 3) 요약 바는 "지금 보이는 목록" 기준으로 계산한다
+        lastVisibleOrder = visible.map(v => v.index);
+        renderSummaryBar(visible);
+
+        // 4) 카드 그리기
+        visible.forEach(({ room, index: originalIndex }) => {
+            const roomAgency = (room['부동산 이름'] || '').trim();
+            const roomStatus = room['평가'] || '';
 
             let badgeClass = 'hold';
             if (roomStatus === '추천') badgeClass = 'pass';
@@ -1215,43 +1567,131 @@
             const rent = room['월세+관리비(만원)'] || 0;
             const score = room['최종점수'] ? `${room['최종점수']}점` : '미산정';
             const visitDate = formatDateOnly(room['방문일자']);
-            
+
             // 도보 시간 데이터 가져오기
             const walkTime = room['도보거리(분)'];
             const walkTimeText = (walkTime !== undefined && walkTime !== null && String(walkTime).trim() !== '') ? `도보 ${walkTime}분` : '도보 정보 없음';
-            
+
             let thumbUrl = IMG_NO_IMAGE;
             if (room['사진URL']) {
                 const urls = room['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
                 if (urls.length > 0) thumbUrl = urls[0];
             }
 
+            const prog = progressOf(room);
+            const checked = compareSelection.has(originalIndex);
+
             const card = document.createElement('div');
-            card.className = 'room-card';
+            card.className = 'room-card' + (checked ? ' compare-on' : '');
             card.onclick = () => openDetailModal(originalIndex);
 
             card.innerHTML = `
-                <img src="${thumbUrl}" class="room-card-thumb" alt="방 썸네일" onerror="this.onerror=null; this.src=IMG_LOAD_ERROR;">
+                <label class="card-compare" title="비교할 방 선택 (최대 ${COMPARE_MAX}개)">
+                    <input type="checkbox" ${checked ? 'checked' : ''}> 비교
+                </label>
+                <img src="${esc(thumbUrl)}" class="room-card-thumb" alt="방 썸네일" onerror="this.onerror=null; this.src=IMG_LOAD_ERROR;">
                 <div class="room-card-body">
-                    ${roomAgency ? `<div class="room-card-agency">🏢 ${roomAgency}</div>` : ''}
+                    ${roomAgency ? `<div class="room-card-agency">🏢 ${esc(roomAgency)}</div>` : ''}
                     <div class="room-card-header">
-                        <h3 class="room-card-title">${room['방 이름'] || '이름 없음'}</h3>
-                        <span class="badge ${badgeClass}">${roomStatus || '미선택'}</span>
+                        <h3 class="room-card-title">${esc(room['방 이름'] || '이름 없음')}</h3>
+                        <span class="badge ${badgeClass}">${esc(roomStatus || '미선택')}</span>
                     </div>
-                    <div class="room-card-price">보증금 ${deposit}만 / 월세 ${rent}만</div>
-                    <div style="font-size: 13px; color: var(--accent-hover); font-weight: 600; margin-top: 2px;">🚶 ${walkTimeText}</div>
+                    ${room['주소'] ? `<div class="room-card-addr">📍 ${esc(room['주소'])}</div>` : ''}
+                    <div class="room-card-price">보증금 ${esc(deposit)}만 / 월세 ${esc(rent)}만</div>
+                    <div style="font-size: 13px; color: var(--accent-hover); font-weight: 600; margin-top: 2px;">🚶 ${esc(walkTimeText)}</div>
+                    ${prog.total && prog.done > 0 ? `
+                    <div class="progress-line" title="계약 진행 체크리스트">
+                        <span>✅ ${prog.done}/${prog.total}</span>
+                        <span class="progress-track"><span class="progress-fill ${prog.pct === 100 ? 'done' : ''}" style="width:${prog.pct}%"></span></span>
+                    </div>` : ''}
                     <div class="room-card-footer">
-                        <span>📅 ${visitDate}</span>
-                        <span class="badge score">${score}</span>
+                        <span>📅 ${esc(visitDate)}</span>
+                        <span class="badge score">${esc(score)}</span>
                     </div>
                 </div>
             `;
+
+            // 비교 체크박스는 카드 열기와 분리한다
+            const cb = card.querySelector('.card-compare');
+            cb.onclick = (e) => e.stopPropagation();
+            cb.querySelector('input').onchange = (e) => toggleCompare(originalIndex, e.target);
+
             container.appendChild(card);
         });
 
-        if (renderCount === 0) {
+        if (visible.length === 0) {
             container.innerHTML = '<div class="loading-spinner">조건에 맞는 방이 없거나 등록되지 않았습니다.</div>';
         }
+    }
+
+    // 📊 지금 보이는 목록의 요약 — 평균·최고점·상태 분포
+    function renderSummaryBar(visible) {
+        const bar = document.getElementById('summaryBar');
+        if (!bar) return;
+
+        if (visible.length === 0) {
+            bar.innerHTML = `<div class="summary-cell"><div class="s-label">표시된 방</div><div class="s-value">0</div>
+                             <div class="s-sub">전체 ${roomDataStore.length}개</div></div>`;
+            return;
+        }
+
+        const avg = (arr) => arr.length ? Math.round(arr.reduce((s, v) => s + v, 0) / arr.length * 10) / 10 : null;
+        const scores = visible.map(v => toNum(v.room['최종점수'])).filter(v => v !== null);
+        const rents = visible.map(v => toNum(v.room['월세+관리비(만원)'])).filter(v => v !== null);
+        const deposits = visible.map(v => toNum(v.room['보증금(만원)'])).filter(v => v !== null);
+
+        let best = null;
+        visible.forEach(v => {
+            const s = toNum(v.room['최종점수']);
+            if (s !== null && (best === null || s > best.score)) best = { score: s, item: v };
+        });
+
+        const counts = { '추천': 0, '보류': 0, '탈락': 0, '미선택': 0 };
+        visible.forEach(v => { counts[v.room['평가'] || '미선택'] = (counts[v.room['평가'] || '미선택'] || 0) + 1; });
+
+        const currentStatus = document.getElementById('statusFilter').value;
+        const chip = (label, key, cls) =>
+            `<button type="button" class="status-chip ${cls} ${currentStatus === key ? 'on' : ''}"
+                     onclick="filterByStatus('${key}')">${label} ${counts[label] || 0}</button>`;
+
+        bar.innerHTML = `
+            <div class="summary-cell">
+                <div class="s-label">표시된 방</div>
+                <div class="s-value">${visible.length}</div>
+                <div class="s-sub">전체 ${roomDataStore.length}개 중</div>
+            </div>
+            <div class="summary-cell">
+                <div class="s-label">평균 점수</div>
+                <div class="s-value">${scores.length ? avg(scores) + '점' : '—'}</div>
+                <div class="s-sub">${scores.length}개 방 기준</div>
+            </div>
+            <div class="summary-cell">
+                <div class="s-label">평균 월세 / 보증금</div>
+                <div class="s-value">${rents.length ? avg(rents) + '만' : '—'}</div>
+                <div class="s-sub">보증금 평균 ${deposits.length ? avg(deposits) + '만' : '—'}</div>
+            </div>
+            ${best ? `
+            <div class="summary-cell best" onclick="openDetailModal(${best.item.index})" title="클릭하면 상세가 열립니다">
+                <div class="s-label">👑 최고 점수</div>
+                <div class="s-value">${esc(best.item.room['방 이름'] || '이름 없음')}</div>
+                <div class="s-sub">${best.score}점 · 월세 ${esc(best.item.room['월세+관리비(만원)'] || '—')}만</div>
+            </div>` : ''}
+            <div class="summary-cell">
+                <div class="s-label">평가 분포 (클릭 = 필터)</div>
+                <div class="status-chips">
+                    ${chip('추천', '추천', 'pass')}
+                    ${chip('보류', '보류', 'hold')}
+                    ${chip('탈락', '탈락', 'fail')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 요약 바의 상태 칩을 누르면 해당 상태만 보기 / 한 번 더 누르면 해제
+    function filterByStatus(status) {
+        const sel = document.getElementById('statusFilter');
+        sel.value = (sel.value === status) ? '' : status;
+        renderRoomCards();
     }
 
     // ↺ 모든 필터 초기화
@@ -1265,6 +1705,446 @@
         if (agency) agency.value = '';
         if (status) status.value = '';
         renderRoomCards();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ⚖️ 방 비교 — 카드에서 고른 2~3개를 한 표에 세워 놓고 다른 값만 강조한다
+    // ─────────────────────────────────────────────────────────────
+    const COMPARE_MAX = 3;
+    let compareSelection = new Set();   // roomDataStore 의 인덱스
+
+    function toggleCompare(index, inputEl) {
+        if (compareSelection.has(index)) {
+            compareSelection.delete(index);
+        } else {
+            if (compareSelection.size >= COMPARE_MAX) {
+                alert(`한 번에 최대 ${COMPARE_MAX}개까지 비교할 수 있습니다.`);
+                if (inputEl) inputEl.checked = false;
+                return;
+            }
+            compareSelection.add(index);
+        }
+        if (inputEl) inputEl.closest('.room-card').classList.toggle('compare-on', compareSelection.has(index));
+        updateCompareBar();
+    }
+
+    function updateCompareBar() {
+        const bar = document.getElementById('compareBar');
+        const n = compareSelection.size;
+        document.getElementById('compareCount').innerText = `${n}개 선택`;
+        bar.classList.toggle('active', n > 0);
+    }
+
+    function clearCompare() {
+        compareSelection.clear();
+        updateCompareBar();
+        renderRoomCards();
+    }
+
+    // 비교 표의 행 정의. better 가 있으면 그 기준으로 👑 를 붙인다.
+    const COMPARE_ROWS = [
+        { label: '평가',        get: r => r['평가'] || '—' },
+        { label: '최종 점수',   get: r => (r['최종점수'] || 0) + '점', num: r => toNum(r['최종점수']), better: 'max' },
+        { label: '보증금',      get: r => (r['보증금(만원)'] || 0) + '만', num: r => toNum(r['보증금(만원)']), better: 'min' },
+        { label: '월세+관리비', get: r => (r['월세+관리비(만원)'] || 0) + '만', num: r => toNum(r['월세+관리비(만원)']), better: 'min' },
+        { label: '도보거리',    get: r => r['도보거리(분)'] ? r['도보거리(분)'] + '분' : '—', num: r => toNum(r['도보거리(분)']), better: 'min' },
+        { label: '주소',        get: r => r['주소'] || '—' },
+        { label: '중개 부동산', get: r => r['부동산 이름'] || '—' },
+        { label: '구조',        get: r => r['구조'] || '—' },
+        { label: '주차',        get: r => r['주차'] || '—' },
+        { label: '방향 / 채광', get: r => `${r['방향'] || '—'} / ${r['채광'] || '—'}` },
+        { label: '수압 / 콘센트', get: r => `${r['수압'] || '—'} / ${r['콘센트'] || '—'}` },
+        { label: '엘베/중문/비번', get: r => [r['엘리베이터'], r['중문'], r['공동현관비번']].map(parseYNValue).join(' / ') },
+        { label: '곰팡이/누수/벌레', get: r => [r['곰팡이'], r['누수'], r['벌레']].map(parseYNValue).join(' / ') },
+        { label: '옵션',        get: r => r['옵션'] || '—', num: r => String(r['옵션'] || '').split(',').filter(s => s.trim()).length, better: 'max' },
+        { label: '계약 진행률', get: r => { const p = progressOf(r); return `${p.done}/${p.total} (${p.pct}%)`; }, num: r => progressOf(r).pct, better: 'max' },
+        { label: '방문일',      get: r => formatDateOnly(r['방문일자']) },
+        { label: '메모',        get: r => (r['메모/특이사항'] || '—') }
+    ];
+
+    function openCompareModal() {
+        const picks = [...compareSelection].map(i => roomDataStore[i]).filter(Boolean);
+        if (picks.length < 2) { alert('비교하려면 방을 2개 이상 선택하세요.'); return; }
+
+        let html = '<thead><tr><th class="rowhead"></th>';
+        picks.forEach(r => {
+            let thumb = IMG_NO_IMAGE;
+            if (r['사진URL']) {
+                const urls = r['사진URL'].split(',').map(s => s.trim()).filter(Boolean);
+                if (urls.length) thumb = urls[0];
+            }
+            html += `<th><img class="compare-head-img" src="${esc(thumb)}" alt="" onerror="this.onerror=null; this.src=IMG_LOAD_ERROR;">
+                         <div class="compare-head-name">${esc(r['방 이름'] || '이름 없음')}</div></th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        COMPARE_ROWS.forEach(row => {
+            const vals = picks.map(r => String(row.get(r)));
+            const differs = new Set(vals).size > 1;
+
+            // 유리한 쪽 찾기 (값이 다를 때만 표시)
+            let winners = [];
+            if (row.better && differs) {
+                const nums = picks.map(r => row.num(r));
+                const valid = nums.filter(n => n !== null && !isNaN(n));
+                if (valid.length) {
+                    const best = row.better === 'max' ? Math.max(...valid) : Math.min(...valid);
+                    winners = nums.map(n => n === best);
+                }
+            }
+
+            html += `<tr class="${differs ? 'diff' : ''}"><th class="rowhead">${esc(row.label)}</th>`;
+            vals.forEach((v, i) => {
+                html += `<td class="${winners[i] ? 'win' : ''}">${esc(v)}</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody>';
+        document.getElementById('compareTable').innerHTML = html;
+        document.getElementById('compareModal').classList.add('active');
+        updateBodyScrollLock();
+    }
+
+    function closeCompareModal() {
+        document.getElementById('compareModal').classList.remove('active');
+        updateBodyScrollLock();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 🗺️ 주소 → 지도 링크
+    // ─────────────────────────────────────────────────────────────
+    function mapLinks(address) {
+        const q = encodeURIComponent(String(address || '').trim());
+        if (!q) return '';
+        return `<span class="map-links">
+            <a class="map-link" href="https://map.kakao.com/?q=${q}" target="_blank" rel="noopener">🗺️ 카카오맵</a>
+            <a class="map-link" href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">🟢 네이버지도</a>
+        </span>`;
+    }
+
+    function openMapForInput() {
+        const addr = document.getElementById('addAddress').value.trim();
+        if (!addr) { alert('먼저 주소를 입력해 주세요.'); return; }
+        window.open('https://map.kakao.com/?q=' + encodeURIComponent(addr), '_blank', 'noopener');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ✅ 방별 계약 진행 체크리스트
+    //    원래 읽기 전용 지식 탭 4종이던 내용을, 방마다 체크되는 항목으로 옮겼다.
+    //    id 는 시트(진행체크 열)에 그대로 저장되므로 절대 바꾸지 않는다.
+    // ─────────────────────────────────────────────────────────────
+    const CHECKLIST_GROUPS = [
+        {
+            id: 'legal', title: '🚨 계약 전 필수 안전장치',
+            note: '보증금을 지키고 위법 건축물 피해를 막기 위해 계약 전~잔금까지 반드시 확인할 항목',
+            items: [
+                { id: 'L1', label: '등기부등본 갑구 — 소유자와 임대인 신분증 일치', desc: '실제 소유자와 계약 상대가 같은 사람인지 확인. 신탁 등기 여부도 필히 확인.' },
+                { id: 'L2', label: '등기부등본 을구 — 근저당권(대출) 금액 확인', desc: '근저당 설정액 + 선순위 보증금 합계가 매매가의 60~70% 아래여야 안전.' },
+                { id: 'L3', label: '건축물대장 — 위반건축물 여부 확인', desc: '위반건축물이면 전입신고가 막히고 대출도 제한된다.' },
+                { id: 'L4', label: '임대인 국세·지방세 납세증명서 확인', desc: '집주인의 세금 체납이 있으면 보증금보다 세금이 먼저 변제된다.' },
+                { id: 'L5', label: '전입신고 & 확정일자 (잔금 당일)', desc: '대항력 확보를 위해 잔금 치른 날 바로 신고하고 확정일자를 받는다.' },
+                { id: 'L6', label: '임대인 신분증 & 송금 계좌 일치', desc: '송금 계좌가 등기부등본상 소유자 명의 계좌인지 확인.' }
+            ]
+        },
+        {
+            id: 'inspection', title: '🔍 현장 점검 노하우',
+            note: '방을 보는 그 자리에서 직접 해봐야 하는 것들',
+            items: [
+                { id: 'I1', label: '벽면 두드려보기 (방음)', desc: '묵직하면 콘크리트(우수), 비어있는 소리면 석고보드 가벽(소음 큼).' },
+                { id: 'I2', label: '샷시(창문) 닫고 외부 소음 확인', desc: '창문을 닫았을 때 차량·길거리 소음이 얼마나 걸러지는지 체크.' },
+                { id: 'I3', label: '배관 소음 — 변기 물 내려보기', desc: '물 빠지는 소리가 방 안에 울리는지 확인.' },
+                { id: 'I4', label: '벌레 흔적 확인', desc: '싱크대 하부장 내부, 걸레받이 틈새의 까만 점(분변)과 약 설치 흔적.' },
+                { id: 'I5', label: '누수·곰팡이 흔적 확인', desc: '창문 틀 주변, 천장 모서리, 옷장 안쪽 도배지 얼룩.' },
+                { id: 'I6', label: '수압 및 배수 동시 테스트', desc: '세면대 물을 튼 상태에서 변기 물을 함께 내려 수압 변화를 본다.' }
+            ]
+        },
+        {
+            id: 'terms', title: '📝 추천 계약 특약사항',
+            note: '계약서에 아래 내용을 특약으로 넣어두면 분쟁을 예방할 수 있다',
+            items: [
+                { id: 'T1', label: '권리 관계 유지 특약 반영', desc: '"임대인은 잔금 지급일 다음 날까지 현재의 등기부등본상 권리 관계를 유지해야 하며, 위반 시 계약 무효 및 계약금 전액 즉시 반환."' },
+                { id: 'T2', label: '하자 보수 의무 특약 반영', desc: '"입주 전 발생한 하자(도배 상태, 곰팡이, 누수 등)는 임대인이 입주 전까지 완료하기로 한다."' },
+                { id: 'T3', label: '옵션 수리 기준 특약 반영', desc: '"기본 옵션 가전 및 난방 시설의 노후 고장은 임대인 비용으로 수리/교체한다."' },
+                { id: 'T4', label: '대출·보증보험 실패 시 특약 반영', desc: '"임대인 또는 건물 하자로 인해 전세자금대출/보증보험 가입 불가 시 계약금 전액 반환."' }
+            ]
+        },
+        {
+            id: 'convenience', title: '🌿 생활 편의 & 안전',
+            note: '삶의 질을 좌우하는 입지·편의 요소',
+            items: [
+                { id: 'C1', label: '🚮 쓰레기 · 분리수거장 확인', desc: '건물 내 분리수거장 관리 상태와 배출 장소.' },
+                { id: 'C2', label: '🏔️ 출퇴근길 경사도 확인', desc: '도보 시간만 보지 말고 실제 언덕길인지 걸어본다.' },
+                { id: 'C3', label: '☀️ 실제 채광 시간 확인', desc: '앞 건물 높이·거리에 따라 해가 드는 시간이 크게 달라진다.' },
+                { id: 'C4', label: '🌐 인터넷 환경 확인', desc: '기본 인터넷 선 유무 및 타공 가능 여부.' },
+                { id: 'C5', label: '📦 택배 보관 장소 확인', desc: '비를 맞지 않고 안전하게 둘 공간이 있는지.' }
+            ]
+        }
+    ];
+
+    const CHECKLIST_TOTAL = CHECKLIST_GROUPS.reduce((n, g) => n + g.items.length, 0);
+    const CHECKLIST_IDS = new Set(CHECKLIST_GROUPS.flatMap(g => g.items.map(i => i.id)));
+
+    let checklistDraft = null;    // 지금 화면에서 편집 중인 체크 상태 Set
+    let checklistDirty = false;
+
+    // 시트의 '진행체크' 문자열(예: "L1,L2,I3") → 현재 템플릿에 존재하는 id 만
+    function parseProgress(room) {
+        return new Set(String((room && room['진행체크']) || '')
+            .split(',').map(s => s.trim()).filter(id => CHECKLIST_IDS.has(id)));
+    }
+
+    function progressOf(room) {
+        const done = parseProgress(room).size;
+        return { done: done, total: CHECKLIST_TOTAL, pct: CHECKLIST_TOTAL ? Math.round(done / CHECKLIST_TOTAL * 100) : 0 };
+    }
+
+    // 체크리스트 탭의 방 선택 드롭다운 채우기 (선택은 유지)
+    function updateChecklistRoomOptions() {
+        const sel = document.getElementById('checklistRoom');
+        if (!sel) return;
+        const keep = sel.value;
+        sel.innerHTML = '<option value="">— 방을 선택하세요 (가이드만 보기) —</option>';
+        roomDataStore.forEach((room, idx) => {
+            const p = progressOf(room);
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            opt.textContent = `${room['방 이름'] || '이름 없음'} — ${p.done}/${p.total}`;
+            sel.appendChild(opt);
+        });
+        if (keep && roomDataStore[Number(keep)]) sel.value = keep;
+    }
+
+    function onChecklistRoomChange() {
+        if (checklistDirty && !confirm('저장하지 않은 체크가 있습니다. 방을 바꾸면 사라집니다. 계속할까요?')) {
+            return;
+        }
+        checklistDraft = null;
+        checklistDirty = false;
+        renderChecklist();
+    }
+
+    // 체크리스트 탭으로 이동하면서 특정 방을 바로 연다 (상세 모달에서 호출)
+    function openChecklistFor(index) {
+        closeDetailModal();
+        document.getElementById('checklistRoom').value = String(index);
+        checklistDraft = null;
+        checklistDirty = false;
+        const btn = document.querySelectorAll('.tab-btn')[1];
+        switchTab('checklist', btn);
+    }
+
+    function renderChecklist() {
+        const sel = document.getElementById('checklistRoom');
+        const body = document.getElementById('checklistBody');
+        if (!sel || !body) return;
+
+        const idx = sel.value === '' ? null : Number(sel.value);
+        const room = idx === null ? null : roomDataStore[idx];
+
+        if (checklistDraft === null) checklistDraft = parseProgress(room);
+
+        const done = checklistDraft.size;
+        const pct = CHECKLIST_TOTAL ? Math.round(done / CHECKLIST_TOTAL * 100) : 0;
+        document.getElementById('checklistCount').innerText = `${done} / ${CHECKLIST_TOTAL}`;
+        document.getElementById('checklistPct').innerText = `${pct}%`;
+        const fill = document.getElementById('checklistFill');
+        fill.style.width = pct + '%';
+        fill.classList.toggle('done', pct === 100);
+
+        // 편집 중인 개수를 드롭다운 라벨에도 즉시 반영 (저장 전에도 어긋나 보이지 않게)
+        if (room && sel.selectedOptions[0]) {
+            sel.selectedOptions[0].textContent = `${room['방 이름'] || '이름 없음'} — ${done}/${CHECKLIST_TOTAL}`;
+        }
+
+        const saveBtn = document.getElementById('checklistSaveBtn');
+        saveBtn.disabled = !room || !checklistDirty;
+        saveBtn.innerText = checklistDirty ? '💾 진행 상황 저장 (변경됨)' : '💾 진행 상황 저장';
+
+        body.className = room ? '' : 'checklist-disabled';
+        body.innerHTML = CHECKLIST_GROUPS.map(group => {
+            const gDone = group.items.filter(i => checklistDraft.has(i.id)).length;
+            const rows = group.items.map(item => {
+                const on = checklistDraft.has(item.id);
+                return `
+                <div class="check-item ${on ? 'checked' : ''}">
+                    <input type="checkbox" id="chk-${item.id}" ${on ? 'checked' : ''} ${room ? '' : 'disabled'}
+                           onchange="toggleCheckItem('${item.id}')">
+                    <div>
+                        <label class="ci-label" for="chk-${item.id}">${esc(item.label)}</label>
+                        <div class="ci-desc">${esc(item.desc)}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            return `
+            <div class="check-group">
+                <h3>
+                    <span>${esc(group.title)}</span>
+                    <span class="grp-count">${gDone}/${group.items.length}</span>
+                </h3>
+                <div style="padding: 8px 16px 0; font-size: 12.5px; color: var(--text-muted);">${esc(group.note)}</div>
+                ${rows}
+            </div>`;
+        }).join('');
+
+        if (!room) {
+            body.insertAdjacentHTML('afterbegin',
+                '<div class="callout" style="background:var(--warning-bg); border-left:5px solid var(--warning-text); font-size:13px;">' +
+                '위에서 방을 고르면 체크할 수 있습니다. 지금은 읽기 전용입니다.</div>');
+        }
+    }
+
+    function toggleCheckItem(itemId) {
+        if (checklistDraft.has(itemId)) checklistDraft.delete(itemId);
+        else checklistDraft.add(itemId);
+        checklistDirty = true;
+        renderChecklist();
+    }
+
+    // 체크 상태는 '진행체크' 열만 따로 갱신한다 (다른 열은 건드리지 않음)
+    async function saveChecklist() {
+        const sel = document.getElementById('checklistRoom');
+        const idx = sel.value === '' ? null : Number(sel.value);
+        const room = idx === null ? null : roomDataStore[idx];
+        if (!room) return;
+
+        const ok = await requestPassword();
+        if (!ok) return;
+
+        const btn = document.getElementById('checklistSaveBtn');
+        btn.disabled = true;
+        btn.innerText = '저장 중...';
+
+        // 템플릿 순서대로 정렬해 저장 — 시트에서 눈으로 읽기 좋게
+        const ordered = CHECKLIST_GROUPS.flatMap(g => g.items.map(i => i.id)).filter(id => checklistDraft.has(id));
+
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateProgress',
+                    password: editPassword,
+                    rowIndex: room.rowIndex || (idx + 2),
+                    progress: ordered.join(',')
+                })
+            });
+            const result = await res.json();
+
+            if (result && result.error === 'unauthorized') {
+                alert('❌ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.');
+            } else if (result && result.ok === false) {
+                alert('저장하지 못했습니다 — ' + (result.error || '알 수 없는 오류'));
+            } else {
+                room['진행체크'] = ordered.join(',');   // 로컬 반영 (전체 재조회 없이)
+                checklistDirty = false;
+                updateChecklistRoomOptions();
+                sel.value = String(idx);
+                renderRoomCards();
+                alert('✅ 진행 상황을 저장했습니다.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('저장 중 오류가 발생했습니다.');
+        } finally {
+            resetAuth();
+            renderChecklist();
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 📸 현장 사진 업로드 — 찍은 사진을 줄여서 드라이브로 바로 올린다
+    // ─────────────────────────────────────────────────────────────
+    const UPLOAD_MAX_SIDE = 1600;
+    const UPLOAD_QUALITY = 0.82;
+
+    // 원본을 그대로 올리면 수 MB 라 Apps Script 왕복이 느리고 실패하기 쉽다.
+    // 긴 변 기준으로 줄여 JPEG 로 다시 굽는다.
+    function resizeImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+            reader.onload = () => {
+                const img = new Image();
+                img.onerror = () => reject(new Error('이미지를 해석하지 못했습니다.'));
+                img.onload = () => {
+                    const scale = Math.min(1, UPLOAD_MAX_SIDE / Math.max(img.width, img.height));
+                    const w = Math.round(img.width * scale);
+                    const h = Math.round(img.height * scale);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', UPLOAD_QUALITY));
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handlePhotoUpload(event) {
+        const files = [...event.target.files];
+        event.target.value = '';   // 같은 파일을 다시 골라도 change 가 뜨도록
+        if (!files.length) return;
+
+        if (!editPassword) {
+            alert('비밀번호 확인이 풀렸습니다. 모달을 닫고 다시 열어 주세요.');
+            return;
+        }
+
+        const statusEl = document.getElementById('uploadStatus');
+        let uploaded = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            statusEl.innerText = `📤 업로드 중… (${i + 1}/${files.length})`;
+            try {
+                const dataUrl = await resizeImage(files[i]);
+                // 내용은 JPEG 로 다시 구웠으므로 확장자도 맞춰준다 (.heic/.png 로 남으면 미리보기가 깨진다)
+                const baseName = (files[i].name || `room-${Date.now()}`).replace(/\.[^.]+$/, '');
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'uploadPhoto',
+                        password: editPassword,
+                        fileName: `${baseName}.jpg`,
+                        mimeType: 'image/jpeg',
+                        dataBase64: dataUrl.split(',')[1]
+                    })
+                });
+                const result = await res.json();
+
+                if (!result || !result.ok) {
+                    throw new Error(result && result.error ? result.error : '서버가 실패를 반환했습니다.');
+                }
+
+                // 올라간 사진은 바로 이 방에 선택된 상태로 붙인다
+                selectedPhotoUrls.push(result.url);
+                document.getElementById('addPhotoUrl').value = selectedPhotoUrls.join(', ');
+                prependUploadedPhoto(result);
+                uploaded++;
+            } catch (err) {
+                console.error(err);
+                statusEl.innerText = `❌ ${files[i].name} 업로드 실패 — ${err.message}`;
+                alert(`사진 업로드에 실패했습니다.\n${err.message}`);
+                return;
+            }
+        }
+
+        statusEl.innerText = `✅ ${uploaded}장 업로드 완료 — 이 방에 자동으로 선택되었습니다.`;
+    }
+
+    function prependUploadedPhoto(photo) {
+        const picker = document.getElementById('drivePhotoPicker');
+        const item = document.createElement('div');
+        item.className = 'photo-picker-item selected uploaded';
+        item.onclick = () => toggleSelectPhoto(photo.url, item);
+        item.innerHTML = `
+            <img src="${esc(photo.url)}" alt="업로드한 사진" onerror="this.onerror=null; this.src=IMG_THUMB_ERROR;">
+            <div class="check-badge">✓</div>
+            <div class="new-badge">방금 업로드</div>
+        `;
+        picker.insertBefore(item, picker.firstChild);
     }
 
     function updateUsedPhotoUrls(excludeIndex = null) {
@@ -1368,6 +2248,7 @@
             })();
             document.getElementById('addVisitDate').value = formatDateOnly(room['방문일자']) !== '-' ? formatDateOnly(room['방문일자']) : todayStr;
             document.getElementById('addName').value = room['방 이름'] || '';
+            document.getElementById('addAddress').value = room['주소'] || '';
             document.getElementById('addAgencyName').value = room['부동산 이름'] || '';
             document.getElementById('addStatus').value = room['평가'] || '';
             document.getElementById('addDeposit').value = room['보증금(만원)'] || '';
@@ -1442,6 +2323,9 @@
             toggleParkingCostInput();
         }
 
+        document.getElementById('uploadStatus').innerText =
+            '폰에서는 카메라로 바로 찍어 올릴 수 있습니다. (자동으로 긴 변 1600px로 줄여 업로드)';
+
         calculateScore();
         updateUsedPhotoUrls(editIndex);
         document.getElementById('formModal').classList.add('active');
@@ -1484,6 +2368,7 @@
             rowIndex: rowIndex,
             visitDate: document.getElementById('addVisitDate').value,
             name: document.getElementById('addName').value,
+            address: document.getElementById('addAddress').value,
             agencyName: document.getElementById('addAgencyName').value,
             status: document.getElementById('addStatus').value,
             deposit: document.getElementById('addDeposit').value,
@@ -1587,12 +2472,18 @@
 
         const prevBtn = document.getElementById('prevRoomBtn');
         const nextBtn = document.getElementById('nextRoomBtn');
-        
-        prevBtn.onclick = () => openDetailModal(index - 1);
-        nextBtn.onclick = () => openDetailModal(index + 1);
-        
-        prevBtn.disabled = index <= 0;
-        nextBtn.disabled = index >= roomDataStore.length - 1;
+
+        // ◀▶ 이동은 "지금 화면에 보이는 순서"를 따른다 (정렬·필터와 어긋나지 않게)
+        const order = lastVisibleOrder.length ? lastVisibleOrder : roomDataStore.map((_, i) => i);
+        const pos = order.indexOf(index);
+        const prevIdx = pos > 0 ? order[pos - 1] : null;
+        const nextIdx = (pos > -1 && pos < order.length - 1) ? order[pos + 1] : null;
+
+        prevBtn.onclick = () => { if (prevIdx !== null) openDetailModal(prevIdx); };
+        nextBtn.onclick = () => { if (nextIdx !== null) openDetailModal(nextIdx); };
+
+        prevBtn.disabled = prevIdx === null;
+        nextBtn.disabled = nextIdx === null;
         
         document.getElementById('editDetailBtn').onclick = () => {
             closeDetailModal();
@@ -1608,8 +2499,8 @@
             photosHtml = '<div class="photo-gallery">';
             urls.forEach((url, idx) => {
                 photosHtml += `
-                    <a href="${url}" data-fancybox="${galleryGroupId}" data-caption="${room['방 이름'] || '사진'} (${idx + 1}/${urls.length})">
-                        <img src="${url}" alt="방 사진" onerror="this.onerror=null; this.src=IMG_THUMB_ERROR;">
+                    <a href="${esc(url)}" data-fancybox="${galleryGroupId}" data-caption="${esc(room['방 이름'] || '사진')} (${idx + 1}/${urls.length})">
+                        <img src="${esc(url)}" alt="방 사진" onerror="this.onerror=null; this.src=IMG_THUMB_ERROR;">
                     </a>
                 `;
             });
@@ -1623,30 +2514,62 @@
         const formattedVisitDate = formatDateOnly(room['방문일자']);
         const agencyName = room['부동산 이름'] || '-';
 
+        // 🧮 저장된 점수와 별개로, 현재 배점표로 근거를 다시 계산해 보여준다
+        const bd = scoreBreakdown(room);
+        const storedScore = toNum(room['최종점수']);
+        const scoreMismatch = storedScore !== null && storedScore !== bd.total;
+
+        const prog = progressOf(room);
+
         const content = `
             ${photosHtml}
-            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: var(--heading);">${room['방 이름'] || '이름 없음'}</h2>
-            
-            <div style="display:flex; gap:10px; align-items:center; margin-bottom: 20px; flex-wrap: wrap;">
-                <span class="badge ${badgeClass}" style="font-size: 14px; padding: 6px 14px;">${room['평가'] || '미선택'}</span>
-                <span class="badge score" style="font-size: 14px; padding: 6px 14px;">💯 최종 점수: ${room['최종점수'] || '0'}점</span>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: var(--heading);">${esc(room['방 이름'] || '이름 없음')}</h2>
+
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom: 14px; flex-wrap: wrap;">
+                <span class="badge ${badgeClass}" style="font-size: 14px; padding: 6px 14px;">${esc(room['평가'] || '미선택')}</span>
+                <span class="badge score" style="font-size: 14px; padding: 6px 14px;">💯 최종 점수: ${esc(room['최종점수'] || '0')}점</span>
             </div>
 
-            <div class="detail-row"><span class="label">🏢 중개 부동산</span><span class="value">${agencyName}</span></div>
-            <div class="detail-row"><span class="label">📅 방문 일자</span><span class="value">${formattedVisitDate}</span></div>
-            <div class="detail-row"><span class="label">💰 보증금 / 월세(관리비)</span><span class="value">${room['보증금(만원)'] || 0}만 원 / ${room['월세+관리비(만원)'] || 0}만 원</span></div>
-            <div class="detail-row"><span class="label">🚶 회사까지 도보거리</span><span class="value">${room['도보거리(분)'] || '-'}분</span></div>
-            <div class="detail-row"><span class="label">🏢 방 구조</span><span class="value">${room['구조'] || '-'}</span></div>
-            <div class="detail-row"><span class="label">🚗 주차 가능 여부</span><span class="value">${room['주차'] || '-'}</span></div>
-            <div class="detail-row"><span class="label">☀️ 방향 / 채광</span><span class="value">${room['방향'] || '-'} / ${room['채광'] || '-'}</span></div>
-            <div class="detail-row"><span class="label">🚰 수압 / 콘센트</span><span class="value">${room['수압'] || '-'} / ${room['콘센트'] || '-'}</span></div>
+            <!-- 🧮 왜 이 점수인가 -->
+            <div style="background:#faf8fd; border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:18px;">
+                <div style="font-size:13px; font-weight:700; color:var(--heading); margin-bottom:6px;">🧮 점수 산출 근거</div>
+                <div class="score-breakdown">${renderBreakdownChips(bd)}</div>
+                ${scoreMismatch ? `<div class="score-note">⚠️ 시트에 저장된 점수(${storedScore}점)와 현재 배점표 기준(${bd.total}점)이 다릅니다.
+                    배점이 바뀐 뒤 저장한 적이 없는 방입니다 — ✏️ 수정 후 저장하면 새 기준으로 맞춰집니다.</div>` : ''}
+            </div>
+
+            <!-- ✅ 계약 진행 -->
+            <div style="display:flex; align-items:center; gap:12px; background:var(--accent-soft); border:1px solid var(--accent);
+                        border-radius:10px; padding:10px 14px; margin-bottom:18px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:160px;">
+                    <div style="font-size:12px; font-weight:700; color:var(--accent-hover);">✅ 계약 진행 체크리스트</div>
+                    <div class="progress-line" style="margin-top:4px;">
+                        <span style="font-weight:700;">${prog.done}/${prog.total}</span>
+                        <span class="progress-track"><span class="progress-fill ${prog.pct === 100 ? 'done' : ''}" style="width:${prog.pct}%"></span></span>
+                        <span style="font-weight:700;">${prog.pct}%</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:13px;" onclick="openChecklistFor(${index})">체크하러 가기 →</button>
+            </div>
+
+            <div class="detail-row"><span class="label">📍 주소</span><span class="value">
+                ${room['주소'] ? `${esc(room['주소'])}<div style="margin-top:4px;">${mapLinks(room['주소'])}</div>` : '-'}
+            </span></div>
+            <div class="detail-row"><span class="label">🏢 중개 부동산</span><span class="value">${esc(agencyName)}</span></div>
+            <div class="detail-row"><span class="label">📅 방문 일자</span><span class="value">${esc(formattedVisitDate)}</span></div>
+            <div class="detail-row"><span class="label">💰 보증금 / 월세(관리비)</span><span class="value">${esc(room['보증금(만원)'] || 0)}만 원 / ${esc(room['월세+관리비(만원)'] || 0)}만 원</span></div>
+            <div class="detail-row"><span class="label">🚶 회사까지 도보거리</span><span class="value">${esc(room['도보거리(분)'] || '-')}분</span></div>
+            <div class="detail-row"><span class="label">🏢 방 구조</span><span class="value">${esc(room['구조'] || '-')}</span></div>
+            <div class="detail-row"><span class="label">🚗 주차 가능 여부</span><span class="value">${esc(room['주차'] || '-')}</span></div>
+            <div class="detail-row"><span class="label">☀️ 방향 / 채광</span><span class="value">${esc(room['방향'] || '-')} / ${esc(room['채광'] || '-')}</span></div>
+            <div class="detail-row"><span class="label">🚰 수압 / 콘센트</span><span class="value">${esc(room['수압'] || '-')} / ${esc(room['콘센트'] || '-')}</span></div>
             <div class="detail-row"><span class="label">🛗 엘리베이터 / 중문 / 비번</span><span class="value">엘베(${parseYNValue(room['엘리베이터'])}), 중문(${parseYNValue(room['중문'])}), 비번(${parseYNValue(room['공동현관비번'])})</span></div>
             <div class="detail-row"><span class="label">⚠️ 하자 흔적 (곰팡이/누수/벌레)</span><span class="value">곰팡이(${parseYNValue(room['곰팡이'])}), 누수(${parseYNValue(room['누수'])}), 벌레(${parseYNValue(room['벌레'])})</span></div>
-            <div class="detail-row"><span class="label">🛋️ 포함 옵션</span><span class="value">${room['옵션'] || '-'}</span></div>
+            <div class="detail-row"><span class="label">🛋️ 포함 옵션</span><span class="value">${esc(room['옵션'] || '-')}</span></div>
 
             <div style="margin-top:20px; padding-top: 15px; border-top: 2px solid var(--border);">
                 <h4 style="margin: 0 0 8px 0; font-size:15px; color: var(--accent-hover);">📝 메모 및 특이사항</h4>
-                <div style="font-size:14px; white-space:pre-wrap; text-align: left; line-height: 1.5; color: var(--text-main);">${(room['메모/특이사항'] || '기록된 메모가 없습니다.').trim()}</div>
+                <div style="font-size:14px; white-space:pre-wrap; text-align: left; line-height: 1.5; color: var(--text-main);">${esc(String(room['메모/특이사항'] || '기록된 메모가 없습니다.').trim())}</div>
             </div>
         `;
 
