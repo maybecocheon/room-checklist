@@ -896,7 +896,10 @@
     <div id="dashboard" class="tab-content active">
         <div class="action-bar">
             <span class="status-info" id="lastUpdatedInfo">🔄 구글 시트에서 데이터를 불러오는 중...</span>
-            <button class="btn btn-outline" onclick="fetchRoomData()">🔄 데이터 새로고침</button>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn btn-outline" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
+                <button class="btn btn-outline" onclick="fetchRoomData()">🔄 데이터 새로고침</button>
+            </div>
         </div>
 
         <!-- 📱 모바일에서는 필터를 접어두고, 필요할 때만 편다 -->
@@ -915,6 +918,7 @@
                     <option value="보류">보류</option>
                     <option value="탈락">탈락</option>
                 </select>
+                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"><span class="ff-suffix">이후</span></label>
             </div>
             <div class="filter-row">
                 <label class="filter-field num">💰 보증금 <input type="number" id="depositMax" placeholder="만원" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이하</span></label>
@@ -932,9 +936,6 @@
                         <option value="sheet">시트 입력 순</option>
                     </select>
                 </label>
-                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
-                <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
-                <button class="btn btn-outline filter-reset" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
             </div>
         </div>
 
@@ -1778,7 +1779,6 @@
         const walkMax = parseFloat(getVal('walkMax'));
         const scoreMin = parseFloat(getVal('scoreMin'));
         const dateFrom = getVal('dateFrom');
-        const dateTo = getVal('dateTo');
 
         // 1) 거르기 — 통과한 방만 원래 인덱스와 함께 모은다
         const visible = [];
@@ -1809,9 +1809,8 @@
             if (!isNaN(walkMax) && (walk === null || walk > walkMax)) return;
             if (!isNaN(scoreMin) && (scoreNum === null || scoreNum < scoreMin)) return;
 
-            // 방문일자 범위 필터
+            // 방문일자 — 이 날짜 이후에 본 방만
             if (dateFrom && (visit === '-' || visit < dateFrom)) return;
-            if (dateTo && (visit === '-' || visit > dateTo)) return;
 
             visible.push({ room: room, index: originalIndex });
         });
@@ -1994,7 +1993,7 @@
 
     // ↺ 모든 필터 초기화
     function resetFilters() {
-        ['searchInput', 'depositMax', 'rentMax', 'walkMax', 'scoreMin', 'dateFrom', 'dateTo'].forEach(id => {
+        ['searchInput', 'depositMax', 'rentMax', 'walkMax', 'scoreMin', 'dateFrom'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
