@@ -278,7 +278,6 @@
         .filter-field input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
         .filter-field input[type="number"]::-webkit-outer-spin-button,
         .filter-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .filter-field input[type="date"]   { width: 120px; }   /* 숫자 칸 4개 + 날짜가 한 줄에 들어가는 폭 */
         .filter-field select { min-width: 102px; padding-right: 0 !important; }
         .filter-field:focus-within,
         .filter-bar input:focus, .filter-bar select:focus {
@@ -918,7 +917,6 @@
                     <option value="보류">보류</option>
                     <option value="탈락">탈락</option>
                 </select>
-                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"><span class="ff-suffix">이후</span></label>
             </div>
             <div class="filter-row">
                 <label class="filter-field num">💰 보증금 <input type="number" id="depositMax" placeholder="만원" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이하</span></label>
@@ -1778,7 +1776,6 @@
         const rentMax = parseFloat(getVal('rentMax'));
         const walkMax = parseFloat(getVal('walkMax'));
         const scoreMin = parseFloat(getVal('scoreMin'));
-        const dateFrom = getVal('dateFrom');
 
         // 1) 거르기 — 통과한 방만 원래 인덱스와 함께 모은다
         const visible = [];
@@ -1809,8 +1806,6 @@
             if (!isNaN(walkMax) && (walk === null || walk > walkMax)) return;
             if (!isNaN(scoreMin) && (scoreNum === null || scoreNum < scoreMin)) return;
 
-            // 방문일자 — 이 날짜 이후에 본 방만
-            if (dateFrom && (visit === '-' || visit < dateFrom)) return;
 
             visible.push({ room: room, index: originalIndex });
         });
@@ -1993,7 +1988,7 @@
 
     // ↺ 모든 필터 초기화
     function resetFilters() {
-        ['searchInput', 'depositMax', 'rentMax', 'walkMax', 'scoreMin', 'dateFrom'].forEach(id => {
+        ['searchInput', 'depositMax', 'rentMax', 'walkMax', 'scoreMin'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
