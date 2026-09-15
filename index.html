@@ -112,7 +112,6 @@
 
         /* 제목 계열은 고운돋움 — 큰 제목(h1)만 함렛으로 무게를 준다.
            숫자가 세로로 줄 맞아야 하는 요약 바 값은 Pretendard 로 남겨둔다. */
-        .room-card-title,
         .detail-title,
         .compare-head-name,
         .modal-header h2,
@@ -226,44 +225,50 @@
 
         .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
+        /* 한 칸 안에서 라벨·입력값·단위가 같은 크기와 굵기로 읽히게 맞춘다 */
         .filter-bar input, .filter-bar select {
             padding: 9px 13px;
             border: 1.5px solid var(--border);
             border-radius: var(--r-sm);
-            font-size: 14px;
+            font-size: 13.5px;
+            font-weight: 700;
             font-family: inherit;
             color: var(--text-main);
             outline: none;
             background: #fff;
             transition: border-color .2s, box-shadow .2s;
         }
+        /* 입력한 값은 라벨과 같은 굵기로, 아직 안 채운 힌트는 한 톤 연하게 —
+           "보증금 500 만원 이하" 가 이미 걸린 필터처럼 보이면 안 된다 */
+        .filter-bar ::placeholder { font-weight: 500; color: #b5aec6; opacity: 1; }
         .filter-row > input, .filter-row > select { flex: 1; min-width: 140px; }
 
         .filter-field {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
+            gap: 7px;
+            font-size: 13.5px;
             font-weight: 700;
             color: var(--text-muted);
             background: #fff;
             border: 1.5px solid var(--border);
             border-radius: var(--r-sm);
-            padding: 3px 11px;
-            flex: 1;
-            min-width: 158px;
+            padding: 4px 12px;
+            /* 늘어나지 않고 내용만큼만 — 숫자 두세 자 넣는 칸이 행을 다 먹지 않게 */
+            flex: 0 1 auto;
             white-space: nowrap;
             transition: border-color .2s, box-shadow .2s;
         }
-        .ff-suffix { flex: none; color: var(--text-muted); font-weight: 700; font-size: 12.5px; }
-        .filter-field input {
+        .ff-suffix { flex: none; color: var(--text-muted); font-weight: 700; }
+        .filter-field input, .filter-field select {
             border: none !important;
             padding: 5px 2px !important;
-            flex: 1;
-            min-width: 0;
-            width: 100%;
+            flex: none;
             font-variant-numeric: tabular-nums;
         }
+        .filter-field input[type="number"] { width: 56px; }
+        .filter-field input[type="date"]   { width: 126px; }
+        .filter-field select { min-width: 102px; padding-right: 0 !important; }
         .filter-field:focus-within,
         .filter-bar input:focus, .filter-bar select:focus {
             border-color: var(--accent);
@@ -784,7 +789,9 @@
             .filter-bar { padding: 13px; margin-bottom: 15px; }
             .filter-bar.collapsed { display: none; }
             .filter-row > input, .filter-row > select { min-width: 100%; }
-            .filter-field { min-width: calc(50% - 5px); font-size: 12px; }
+            .filter-field { flex: 1 1 calc(50% - 5px); font-size: 12.5px; padding: 4px 10px; }
+            /* 한 줄을 다 쓰므로 숫자를 오른쪽 끝 단위 옆에 붙인다 — "보증금  500 만원 이하" */
+            .filter-field input[type="number"] { width: 100%; flex: 1; text-align: right; }
 
             .summary-bar { grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 16px; }
             .summary-cell { padding: 10px 12px; }
@@ -823,7 +830,7 @@
         }
 
         @media (max-width: 560px) {
-            .filter-field { min-width: 100%; }
+            .filter-field { flex-basis: 100%; }
             .summary-bar { grid-template-columns: 1fr 1fr; }
         }
 
@@ -903,7 +910,7 @@
                 <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
                 <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
                 <label class="filter-field">↕️ 정렬
-                    <select id="sortBy" onchange="renderRoomCards()" style="border:none; background:transparent; font-weight:700; color:var(--accent-hover); flex:1; min-width:0;">
+                    <select id="sortBy" onchange="renderRoomCards()" style="background:transparent; color:var(--accent-hover);">
                         <option value="scoreDesc">점수 높은 순</option>
                         <option value="rentAsc">월세 싼 순</option>
                         <option value="depositAsc">보증금 낮은 순</option>
