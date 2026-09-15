@@ -255,7 +255,9 @@
             border-radius: var(--r-sm);
             padding: 4px 12px;
             /* 늘어나지 않고 내용만큼만 — 숫자 두세 자 넣는 칸이 행을 다 먹지 않게 */
-            flex: 0 1 auto;
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: 300px;
             white-space: nowrap;
             transition: border-color .2s, box-shadow .2s;
         }
@@ -268,19 +270,24 @@
         }
         /* 숫자 칸은 폭을 하나로 고정한다. 라벨 길이가 달라 제각각이면
            일부러 그렇게 둔 게 아니라 얼렁뚱땅 놓인 것처럼 보인다. */
-        .filter-field.num { width: 160px; flex: none; justify-content: space-between; }  /* 보증금 네 자리(1000)가 들어가는 최소 폭 */
+        /* 160px 이 보증금 네 자리(1000)가 안 잘리는 최소 폭. 줄에 자리가 남으면
+           그만큼씩 나눠 늘어나되, 숫자 두세 자 칸이 과하게 벌어지지 않도록 상한을 둔다. */
+        .filter-field.num { flex: 1 1 160px; max-width: 200px; min-width: 160px; justify-content: space-between; }
         .filter-field.num input[type="number"] { width: auto; flex: 1; min-width: 0; text-align: right; }
         /* 증감 화살표는 보이지도 않으면서 폭을 십여 px 먹는다. 필터에선 쓸 일이 없다. */
         .filter-field input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
         .filter-field input[type="number"]::-webkit-outer-spin-button,
         .filter-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .filter-field input[type="date"]   { width: 126px; }
+        .filter-field input[type="date"]   { width: 120px; }   /* 숫자 칸 4개 + 날짜가 한 줄에 들어가는 폭 */
         .filter-field select { min-width: 102px; padding-right: 0 !important; }
         .filter-field:focus-within,
         .filter-bar input:focus, .filter-bar select:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3.5px var(--accent-soft);
         }
+
+        /* 남는 자리를 버튼이 오른쪽 끝으로 밀고 간다 — 줄 끝이 허전하게 비지 않는다 */
+        .filter-reset { margin-left: auto; }
 
         .filter-toggle { display: none; }
 
@@ -796,10 +803,11 @@
             .filter-bar { padding: 13px; margin-bottom: 15px; }
             .filter-bar.collapsed { display: none; }
             .filter-row > input, .filter-row > select { min-width: 100%; }
-            .filter-field { flex: 1 1 calc(50% - 5px); font-size: 12.5px; padding: 4px 10px; }
+            .filter-field { flex: 1 1 100%; max-width: none; font-size: 12.5px; padding: 4px 10px; }
             /* 좁은 화면에선 한 줄씩. min-width:0 이 없으면 flex 항목의 자동 최소 폭
                때문에 라벨이 긴 칸('보증금')만 12px 삐져나온다. */
-            .filter-field.num { width: auto; flex: 1 1 100%; min-width: 0; }
+            .filter-field.num { width: auto; flex: 1 1 100%; min-width: 0; max-width: none; }
+            .filter-reset { margin-left: 0; flex: 1 1 100%; justify-content: center; }
 
             .summary-bar { grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 16px; }
             .summary-cell { padding: 10px 12px; }
@@ -913,10 +921,6 @@
                 <label class="filter-field num">🏷️ 월세 <input type="number" id="rentMax" placeholder="만원" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이하</span></label>
                 <label class="filter-field num">🚶 도보 <input type="number" id="walkMax" placeholder="분" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이내</span></label>
                 <label class="filter-field num">💯 점수 <input type="number" id="scoreMin" placeholder="점" min="0" max="100" oninput="renderRoomCards()"><span class="ff-suffix">이상</span></label>
-            </div>
-            <div class="filter-row">
-                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
-                <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
                 <label class="filter-field">↕️ 정렬
                     <select id="sortBy" onchange="renderRoomCards()" style="background:transparent; color:var(--accent-hover);">
                         <option value="scoreDesc">점수 높은 순</option>
@@ -928,7 +932,9 @@
                         <option value="sheet">시트 입력 순</option>
                     </select>
                 </label>
-                <button class="btn btn-outline" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
+                <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
+                <label class="filter-field">~ <input type="date" id="dateTo" onchange="renderRoomCards()"></label>
+                <button class="btn btn-outline filter-reset" type="button" onclick="resetFilters()">↺ 필터 초기화</button>
             </div>
         </div>
 
