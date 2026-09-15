@@ -266,7 +266,14 @@
             flex: none;
             font-variant-numeric: tabular-nums;
         }
-        .filter-field input[type="number"] { width: 56px; }
+        /* 숫자 칸은 폭을 하나로 고정한다. 라벨 길이가 달라 제각각이면
+           일부러 그렇게 둔 게 아니라 얼렁뚱땅 놓인 것처럼 보인다. */
+        .filter-field.num { width: 160px; flex: none; justify-content: space-between; }  /* 보증금 네 자리(1000)가 들어가는 최소 폭 */
+        .filter-field.num input[type="number"] { width: auto; flex: 1; min-width: 0; text-align: right; }
+        /* 증감 화살표는 보이지도 않으면서 폭을 십여 px 먹는다. 필터에선 쓸 일이 없다. */
+        .filter-field input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+        .filter-field input[type="number"]::-webkit-outer-spin-button,
+        .filter-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .filter-field input[type="date"]   { width: 126px; }
         .filter-field select { min-width: 102px; padding-right: 0 !important; }
         .filter-field:focus-within,
@@ -790,8 +797,9 @@
             .filter-bar.collapsed { display: none; }
             .filter-row > input, .filter-row > select { min-width: 100%; }
             .filter-field { flex: 1 1 calc(50% - 5px); font-size: 12.5px; padding: 4px 10px; }
-            /* 한 줄을 다 쓰므로 숫자를 오른쪽 끝 단위 옆에 붙인다 — "보증금  500 만원 이하" */
-            .filter-field input[type="number"] { width: 100%; flex: 1; text-align: right; }
+            /* 좁은 화면에선 한 줄씩. min-width:0 이 없으면 flex 항목의 자동 최소 폭
+               때문에 라벨이 긴 칸('보증금')만 12px 삐져나온다. */
+            .filter-field.num { width: auto; flex: 1 1 100%; min-width: 0; }
 
             .summary-bar { grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 16px; }
             .summary-cell { padding: 10px 12px; }
@@ -901,10 +909,10 @@
                 </select>
             </div>
             <div class="filter-row">
-                <label class="filter-field">💰 보증금 <input type="number" id="depositMax" placeholder="500" min="0" oninput="renderRoomCards()"><span class="ff-suffix">만원 이하</span></label>
-                <label class="filter-field">🏷️ 월세 <input type="number" id="rentMax" placeholder="40" min="0" oninput="renderRoomCards()"><span class="ff-suffix">만원 이하</span></label>
-                <label class="filter-field">🚶 도보 <input type="number" id="walkMax" placeholder="25" min="0" oninput="renderRoomCards()"><span class="ff-suffix">분 이내</span></label>
-                <label class="filter-field">💯 점수 <input type="number" id="scoreMin" placeholder="70" min="0" max="100" oninput="renderRoomCards()"><span class="ff-suffix">점 이상</span></label>
+                <label class="filter-field num">💰 보증금 <input type="number" id="depositMax" placeholder="만원" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이하</span></label>
+                <label class="filter-field num">🏷️ 월세 <input type="number" id="rentMax" placeholder="만원" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이하</span></label>
+                <label class="filter-field num">🚶 도보 <input type="number" id="walkMax" placeholder="분" min="0" oninput="renderRoomCards()"><span class="ff-suffix">이내</span></label>
+                <label class="filter-field num">💯 점수 <input type="number" id="scoreMin" placeholder="점" min="0" max="100" oninput="renderRoomCards()"><span class="ff-suffix">이상</span></label>
             </div>
             <div class="filter-row">
                 <label class="filter-field">📅 방문 <input type="date" id="dateFrom" onchange="renderRoomCards()"></label>
