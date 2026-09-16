@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>월세방 스마트 체크리스트 — 이런 곳입니다</title>
+<title>월세방 스마트 체크리스트 — 어떻게 동작하나</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -209,8 +209,8 @@
     <div class="badge">🏠 github.com/maybecocheon/room-checklist</div>
   </div>
 
-  <h1>방을 보고 와서<br><em>점수로</em> 비교하는 곳</h1>
-  <p class="sub1">집을 보고 나오면 금방 잊어버립니다. 그 자리에서 휴대폰으로 적어두면,
+  <h1>월세방을 <em>점수로</em> 비교하는<br>현장 체크리스트</h1>
+  <p class="sub1">원룸을 보고 나오면 금방 잊어버립니다. 그 자리에서 휴대폰으로 체크리스트를 채우면,
      쌓인 방들이 카드로 나란히 놓이고 조건에 맞는 것만 골라 볼 수 있습니다.</p>
   <div class="chips">
     <span class="chip a">휴대폰으로 그 자리에서 기록</span>
@@ -218,12 +218,12 @@
     <span class="chip b">사진은 내 구글 드라이브에</span>
     <span class="chip c">앱 설치 없이 웹에서</span>
   </div>
-  <p class="hint"><kbd>←</kbd> <kbd>→</kbd> 방향키 · 화면 클릭 · 손가락으로 넘기기 &nbsp;·&nbsp; <kbd>F</kbd> 전체화면</p>
+  <p class="hint"><kbd>←</kbd> <kbd>→</kbd> 방향키 · 클릭 · 스와이프 &nbsp;·&nbsp; <kbd>F</kbd> 전체화면</p>
 </section>
 
 <!-- ═══ 2. 무엇을 하는 곳인가 ═══ -->
 <section class="slide">
-  <div class="eyebrow">01 — 무엇을 하는 곳인가</div>
+  <div class="eyebrow">01 — 무엇을 하는가 · What it does</div>
   <h2>기억 대신 기록으로 고릅니다</h2>
   <p class="lede">집을 세 군데쯤 보고 나면 첫 번째 집이 흐려집니다. 수압이 좋았던 게 어디였는지, 곰팡이를 본 게 어느 집이었는지요.
      그래서 <b>그 자리에서 적고, 같은 기준으로 점수를 매깁니다.</b></p>
@@ -236,7 +236,7 @@
            <b>사진도 찍어서 바로 올릴 수 있습니다.</b></p>
       </div>
       <div class="card bc">
-        <h3>📊 한눈에 비교하기 <span class="tt">(필터 · 정렬 · 비교표)</span></h3>
+        <h3>📊 비교 대시보드 <span class="tt">(필터 · 정렬 · 나란히 비교)</span></h3>
         <p>보증금·월세·도보 시간·점수로 걸러 보고, 원하는 순서로 정렬합니다.
            마음에 드는 방 <b>두세 개를 골라 나란히 놓으면, 값이 다른 항목만 색으로 표시</b>됩니다 <span class="tt">(차이 비교표)</span>.</p>
       </div>
@@ -269,8 +269,8 @@
 
 <!-- ═══ 3. 어떻게 굴러가나 ═══ -->
 <section class="slide">
-  <div class="eyebrow">02 — 어떻게 굴러가나</div>
-  <h2>서버 없이, 구글 시트를 창고 삼아</h2>
+  <div class="eyebrow">02 — 구조 · Architecture</div>
+  <h2>서버 없이, 구글 시트를 데이터베이스로</h2>
   <p class="lede">따로 빌린 서버가 없습니다. <b>데이터는 내 구글 시트에, 사진은 내 구글 드라이브에</b> 그대로 쌓입니다.
      그 사이를 구글이 무료로 돌려주는 작은 프로그램 하나가 오갑니다 <span class="tt">(Apps Script 웹앱)</span>.</p>
 
@@ -325,7 +325,7 @@
       <div class="stack">
         <div class="stack-head" style="background:var(--y-s);color:var(--y)">③ 내 구글 계정 <span class="tt">(데이터 저장소)</span></div>
         <div class="box">
-          <div class="bt">📄 구글 시트 — 데이터가 사는 곳 <span class="tt">(데이터베이스)</span></div>
+          <div class="bt">📄 구글 시트 <span class="tt">(데이터베이스 역할)</span></div>
           <div class="bd">방 이름·주소·보증금·월세·도보·점수·메모·체크 진행 상황이 한 줄씩 쌓입니다.
             <b>시트를 공유하면 그대로 같이 보는 도구</b>가 됩니다</div>
         </div>
@@ -344,7 +344,7 @@
 
 <!-- ═══ 4. 비밀번호 ═══ -->
 <section class="slide">
-  <div class="eyebrow">03 — 비밀번호</div>
+  <div class="eyebrow">03 — 인증 · Authentication</div>
   <h2>웹페이지 안에 비밀은 숨길 수 없습니다</h2>
   <p class="lede">처음에는 비밀번호가 웹페이지 안에 그냥 적혀 있었습니다.
      그런데 <b>브라우저가 읽어야 하는 값은 사람도 똑같이 읽을 수 있습니다.</b> 그래서 검사를 구글 쪽 <span class="tt">(서버)</span> 으로 옮겼습니다.</p>
@@ -387,7 +387,7 @@
 
 <!-- ═══ 5. 만든 방법 ═══ -->
 <section class="slide">
-  <div class="eyebrow">04 — 만든 방법</div>
+  <div class="eyebrow">04 — 만든 방식 · Workflow</div>
   <h2>정할 땐 대화로, 고칠 땐 확인으로</h2>
   <p class="lede">체크 항목과 배점은 AI와 대화하면서 정한 뒤 <b>코드에 박아 고정</b> <span class="tt">(규칙 기반 계산)</span> 했습니다.
      그래서 쓰는 동안에는 AI를 부르지 않습니다 — 빠르고, 돈이 안 들고, 같은 방은 늘 같은 점수가 나옵니다.</p>
@@ -428,25 +428,25 @@
 
 <!-- ═══ 6. 고치고 올리기 ═══ -->
 <section class="slide">
-  <div class="eyebrow">05 — 고치고 올리기</div>
-  <h2>화면은 저절로, 구글 쪽은 손으로</h2>
+  <div class="eyebrow">05 — 배포 · Deploy</div>
+  <h2>배포 — 화면은 자동, 구글 쪽은 수동</h2>
   <p class="lede">고친 걸 올리는 길이 <b>두 갈래인데 서로 완전히 따로</b> 놉니다. 여기서 제일 많이 헷갈립니다.</p>
 
   <div class="body" style="display:grid;grid-template-rows:auto 1fr;gap:14px;">
     <div class="panel" style="flex:0 0 auto">
       <h3><i class="dot" style="background:var(--g)"></i>두 갈래 — 한쪽은 자동, 한쪽은 수동</h3>
 
-      <div class="track-label" style="color:var(--head)">화면(웹페이지) — 자동</div>
+      <div class="track-label" style="color:var(--head)">프론트엔드 — 자동</div>
       <div class="track">
-        <span class="step-pill">화면 코드 수정</span><span class="caret">→</span>
+        <span class="step-pill">index.html 수정</span><span class="caret">→</span>
         <span class="step-pill">깃허브에 올리기 <span class="tt">(git push)</span></span><span class="caret">→</span>
         <span class="step-pill on">저절로 다시 배포 <span class="tt">(Vercel)</span></span><span class="caret">→</span>
         <span class="step-pill done">✅ 바로 반영</span>
       </div>
 
-      <div class="track-label" style="color:var(--y);margin-top:15px">구글 쪽 프로그램 — 수동</div>
+      <div class="track-label" style="color:var(--y);margin-top:15px">백엔드(Apps Script) — 수동</div>
       <div class="track">
-        <span class="step-pill">코드 수정</span><span class="caret">→</span>
+        <span class="step-pill">Code.gs 수정</span><span class="caret">→</span>
         <span class="step-pill">저장</span><span class="caret">→</span>
         <span class="step-pill warnpill">배포 관리 → ✏️ → “새 버전” → 배포</span><span class="caret">→</span>
         <span class="step-pill done">✅ 반영</span>
@@ -470,7 +470,7 @@
            <b>2.</b> 준비된 코드 붙여넣기<br>
            <b>3.</b> 설정값 <span class="tt">(스크립트 속성)</span> 에 비밀번호 넣기<br>
            <b>4.</b> 배포할 때 <b>“모든 사용자”</b>로<br>
-           <b>5.</b> 나온 주소를 화면 코드에 넣기</p>
+           <b>5.</b> 나온 주소를 <code>WEB_APP_URL</code> 에 넣기</p>
       </div>
       <div class="warn">
         <h3>🧯 막히면 여기부터</h3>
@@ -484,10 +484,10 @@
 
 <nav>
   <div class="dots" id="dots"></div>
-  <a class="home" href="./">← 목록으로 돌아가기</a>
+  <a class="home" href="./">← 대시보드로</a>
   <span class="nav-lbl" id="counter">1 / 6</span>
-  <button class="arrow" id="prev" aria-label="이전 장">←</button>
-  <button class="arrow" id="next" aria-label="다음 장">→</button>
+  <button class="arrow" id="prev" aria-label="이전 슬라이드">←</button>
+  <button class="arrow" id="next" aria-label="다음 슬라이드">→</button>
 </nav>
 </div>
 
@@ -516,7 +516,7 @@
   slides.forEach((_, n) => {
     const b = document.createElement('button');
     b.className = 'pip';
-    b.setAttribute('aria-label', `${n + 1}번째 장`);
+    b.setAttribute('aria-label', `${n + 1}번 슬라이드`);
     b.onclick = () => go(n);
     dots.appendChild(b);
   });
@@ -553,7 +553,7 @@
     go(i + 1);
   });
 
-  // 손가락으로 넘기기
+  // 모바일 스와이프
   let x0 = null;
   addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
   addEventListener('touchend', e => {
