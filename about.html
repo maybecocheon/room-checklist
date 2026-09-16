@@ -214,8 +214,8 @@
      쌓인 방들이 카드로 나란히 놓이고 조건에 맞는 것만 골라 볼 수 있습니다.</p>
   <div class="chips">
     <span class="chip a">휴대폰으로 그 자리에서 기록</span>
-    <span class="chip b">내 구글 시트에 저장</span>
-    <span class="chip b">사진은 내 구글 드라이브에</span>
+    <span class="chip b">구글 시트에 저장</span>
+    <span class="chip b">사진은 구글 드라이브에</span>
     <span class="chip c">앱 설치 없이 웹에서</span>
   </div>
   <p class="hint"><kbd>←</kbd> <kbd>→</kbd> 방향키 · 클릭 · 스와이프 &nbsp;·&nbsp; <kbd>F</kbd> 전체화면</p>
@@ -271,13 +271,13 @@
 <section class="slide">
   <div class="eyebrow">02 — 구조 · Architecture</div>
   <h2>서버 없이, 구글 시트를 데이터베이스로</h2>
-  <p class="lede">따로 빌린 서버가 없습니다. <b>데이터는 내 구글 시트에, 사진은 내 구글 드라이브에</b> 그대로 쌓입니다.
+  <p class="lede">따로 빌린 서버가 없습니다. <b>데이터는 만든 사람의 구글 시트에, 사진은 같은 계정의 구글 드라이브에</b> 그대로 쌓입니다.
      그 사이를 구글이 무료로 돌려주는 작은 프로그램 하나가 오갑니다 <span class="tt">(Apps Script 웹앱)</span>.</p>
 
   <div class="body">
     <div class="flow">
       <div class="stack">
-        <div class="stack-head" style="background:var(--v-s);color:var(--head)">① 내 휴대폰 · PC 화면 <span class="tt">(프론트엔드)</span></div>
+        <div class="stack-head" style="background:var(--v-s);color:var(--head)">① 사용자 화면 — 휴대폰 · PC <span class="tt">(프론트엔드)</span></div>
         <div class="box">
           <div class="bt">👤 방을 보고 나와서 입력</div>
           <div class="bd">보는 건 누구나 가능하고, 적고 고치는 건 비밀번호가 필요합니다</div>
@@ -323,7 +323,7 @@
       </div>
 
       <div class="stack">
-        <div class="stack-head" style="background:var(--y-s);color:var(--y)">③ 내 구글 계정 <span class="tt">(데이터 저장소)</span></div>
+        <div class="stack-head" style="background:var(--y-s);color:var(--y)">③ 만든 사람의 구글 계정 <span class="tt">(데이터 저장소)</span></div>
         <div class="box">
           <div class="bt">📄 구글 시트 <span class="tt">(데이터베이스 역할)</span></div>
           <div class="bd">방 이름·주소·보증금·월세·도보·점수·메모·체크 진행 상황이 한 줄씩 쌓입니다.
@@ -430,7 +430,8 @@
 <section class="slide">
   <div class="eyebrow">05 — 배포 · Deploy</div>
   <h2>배포 — 화면은 자동, 구글 쪽은 수동</h2>
-  <p class="lede">고친 걸 올리는 길이 <b>두 갈래인데 서로 완전히 따로</b> 놉니다. 여기서 제일 많이 헷갈립니다.</p>
+  <p class="lede">저장소가 공개되어 있어서 <b>누구나 그대로 가져가 자기 구글 계정에 붙여 쓸 수 있습니다.</b>
+     올리는 길이 두 갈래인데 서로 완전히 따로 놉니다 — 여기서 가장 많이 헷갈립니다.</p>
 
   <div class="body" style="display:grid;grid-template-rows:auto 1fr;gap:14px;">
     <div class="panel" style="flex:0 0 auto">
@@ -458,14 +459,14 @@
 
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;min-height:0">
       <div class="card ac">
-        <h3>🚀 처음 올릴 때</h3>
-        <p><b>1.</b> vercel.com/new 에서 이 저장소 고르기<br>
+        <h3>🚀 화면 올리기 — 처음 한 번</h3>
+        <p><b>1.</b> vercel.com/new 에서 위 저장소 고르기<br>
            <b>2.</b> 종류는 <b>Other</b> 그대로<br>
            <b>3.</b> Deploy 누르기<br><br>
            따로 설정할 게 없습니다. 이후로는 코드를 올릴 때마다 저절로 반영됩니다.</p>
       </div>
       <div class="card bc">
-        <h3>⚙️ 구글 쪽 준비</h3>
+        <h3>⚙️ 구글 쪽 준비 — 자기 계정으로</h3>
         <p><b>1.</b> 시트 → 확장 프로그램 → Apps Script<br>
            <b>2.</b> 준비된 코드 붙여넣기<br>
            <b>3.</b> 설정값 <span class="tt">(스크립트 속성)</span> 에 비밀번호 넣기<br>
