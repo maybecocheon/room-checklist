@@ -270,9 +270,9 @@
 <!-- ═══ 3. 어떻게 굴러가나 ═══ -->
 <section class="slide">
   <div class="eyebrow">02 — 구조 · Architecture</div>
-  <h2>서버 없이, 구글 시트를 데이터베이스로</h2>
-  <p class="lede">따로 빌린 서버가 없습니다. <b>데이터는 만든 사람의 구글 시트에, 사진은 같은 계정의 구글 드라이브에</b> 그대로 쌓입니다.
-     그 사이를 구글이 무료로 돌려주는 작은 프로그램 하나가 오갑니다 <span class="tt">(Apps Script 웹앱)</span>.</p>
+  <h2>서버를 따로 두지 않고, 구글 시트를 데이터베이스로</h2>
+  <p class="lede">따로 구축한 서버가 없습니다. 화면은 Vercel이 파일 그대로 내려주고, <b>데이터는 만든 사람의 구글 시트에, 사진은 같은 계정의 구글 드라이브에</b> 쌓입니다.
+     저장하고 검사하는 일은 구글이 무료로 돌려주는 작은 프로그램 하나가 맡습니다 <span class="tt">(Apps Script 웹앱)</span>.</p>
 
   <div class="body">
     <div class="flow">
@@ -440,7 +440,7 @@
       <div class="track-label" style="color:var(--head)">프론트엔드 — 자동</div>
       <div class="track">
         <span class="step-pill">index.html 수정</span><span class="caret">→</span>
-        <span class="step-pill">깃허브에 올리기 <span class="tt">(git push)</span></span><span class="caret">→</span>
+        <span class="step-pill">커밋·푸시까지 Claude Code가 <span class="tt">(git push)</span></span><span class="caret">→</span>
         <span class="step-pill on">저절로 다시 배포 <span class="tt">(Vercel)</span></span><span class="caret">→</span>
         <span class="step-pill done">✅ 바로 반영</span>
       </div>
