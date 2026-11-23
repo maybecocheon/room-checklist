@@ -756,6 +756,13 @@
         .empty-toggle.on { border-style: solid; border-color: var(--accent); background: #f8fcfa; }
         .empty-toggle input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; cursor: pointer; accent-color: var(--accent); }
         .empty-toggle .ci-desc { margin-top: 3px; }
+        .prep-box {
+            padding: 14px 16px; margin-bottom: 18px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--card-bg);
+        }
+        .prep-title { font-size: 14px; font-weight: 800; color: var(--heading); margin-bottom: 8px; }
+        .prep-item { font-size: 13px; color: var(--text-muted); line-height: 1.6; padding: 2px 0; }
+        .prep-item b { color: var(--text-main); }
 
         /* ── 빈 상태 · 로딩 ───────────────────────────── */
         .loading-spinner { text-align: center; padding: 44px 20px; color: var(--text-muted); grid-column: 1 / -1; }
@@ -2160,7 +2167,12 @@
                 { id: 'I7', label: '온수 나오는 데 걸리는 시간', desc: '온수를 틀고 몇 초 만에 더운물이 나오는지. 지역난방은 느릴 수 있다.' },
                 { id: 'I8', label: '콘센트 개수와 위치', desc: '침대·책상·냉장고·세탁기 놓을 자리에 콘센트가 있는지. 멀티탭으로 해결 안 되는 자리가 있다.' },
                 { id: 'I9', label: '창문·방충망 여닫힘', desc: '창이 뻑뻑하지 않은지, 방충망이 찢어지거나 빠진 곳은 없는지.' },
-                { id: 'I10', label: '도배·장판 상태', desc: '흠집·오염·들뜸을 보고, 입주 전에 새로 해주는지 물어본다.' }
+                { id: 'I10', label: '도배·장판 상태', desc: '흠집·오염·들뜸을 보고, 입주 전에 새로 해주는지 물어본다.' },
+                { id: 'I11', label: '👃 들어가자마자 냄새 맡기', desc: '곰팡이는 눈보다 코가 정확하다. 닫혀 있던 빈집이면 문 여는 순간 안다.' },
+                { id: 'I12', label: '천장 전체 — 누수 얼룩', desc: '창틀 위와 벽 모서리를 특히. 벽지 색이 다르거나 들뜬 곳은 과거 보수 흔적이다. 최상층이면 반드시 본다.' },
+                { id: 'I13', label: '해 안 드는 구석 벽 손으로 만져보기', desc: '북쪽·북서쪽 모서리가 집에서 가장 춥다. 차갑고 축축하면 결로 신호. 가구로 가려질 자리를 특히.' },
+                { id: 'I14', label: '★ 손전등을 벽에 스치듯 비춰보기', desc: '정면으로 비추면 안 보이던 벽지 들뜸·보수 자국·얼룩이 측면광에서는 그림자로 드러난다. 도배 하자 검사의 기본 요령.' },
+                { id: 'I15', label: '불이 안 켜지면 분전반(두꺼비집)', desc: '빈집은 차단기만 내려가 있는 경우가 많다. 현관 옆이나 신발장 위를 열어 올려본다. 그래도 안 되면 열쇠 들고 온 사람에게 물어본다.' }
             ]
         },
         {
@@ -2212,7 +2224,7 @@
                 { id: 'C4', label: '🌐 인터넷 환경 확인', desc: '기본 인터넷 선 유무 및 타공 가능 여부.' },
                 { id: 'C5', label: '📦 택배 보관 장소 확인', desc: '비를 맞지 않고 안전하게 둘 공간이 있는지.' },
                 { id: 'C6', label: '🚗 주차 자리 확인', desc: '세대당 몇 대인지, 지상인지 지하인지, 밤에 자리가 남는지.' },
-                { id: 'C7', label: '📷 사진 · 영상으로 남기기', desc: '각 방 전체 / 가전 자리(줄자 댄 채로) / 하자 부분 / 계량기. 하자는 입주 전에 찍어둬야 나중에 책임을 면한다.' }
+                { id: 'C7', label: '📷 사진 · 영상으로 남기기', desc: '각 방 전체 / 가전 자리(줄자 댄 채로) / 하자 부분 / 계량기. 하자는 입주 전에 찍어둬야 나중에 책임을 면한다. 어두우면 플래시를 터뜨려 찍고, 집에 와서 확대해 보면 현장에서 못 본 게 보인다.' }
             ]
         }
     ];
@@ -2343,7 +2355,17 @@
                 </div>
             </div>`;
 
-        body.innerHTML = emptyToggle + groups.map(group => {
+        // 🎒 챙길 것 — 방마다 체크할 성질이 아니라서 분모에 넣지 않는다
+        const prepBox = `
+            <div class="prep-box">
+                <div class="prep-title">🎒 나가기 전 챙길 것</div>
+                <div class="prep-item"><b>줄자</b> — 5m 이상. 3m는 모자랍니다</div>
+                <div class="prep-item"><b>LED 랜턴</b> — 빈집은 전기가 끊겨 있을 수 있습니다.
+                    다이소 1만원대면 되고, 헤드랜턴이면 손이 자유로워 줄자 재기가 편합니다</div>
+                <div class="prep-item"><b>휴대폰</b> — 사진·손전등으로 계속 씁니다. 배터리 충분히</div>
+            </div>`;
+
+        body.innerHTML = emptyToggle + prepBox + groups.map(group => {
             const gDone = group.items.filter(i => checklistDraft.has(i.id)).length;
             const rows = group.items.map(item => {
                 const on = checklistDraft.has(item.id);
